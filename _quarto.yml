@@ -1,0 +1,15 @@
+project:
+  type: book
+
+book:
+  title: "Primate Brain Network"
+  author: "Yao-Chung Chen"
+  page-navigation: true
+  sidebar:
+    collapse-level: 1
+  chapters:
+    - index.qmd
+    - part: "Discover Correlations"
+      chapters:
+        - posts/F1_00_report.qmd
+        - posts/F1_01_overlapped_correlations_across_species.qmd

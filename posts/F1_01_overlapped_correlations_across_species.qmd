@@ -1,0 +1,181 @@
+# Compare the overlaps between brain regions in human sample
+
+```{r warning=FALSE}
+library(TEKRABber)
+library(twice)
+library(tidyverse)
+load("../data/primateBrainData.RData")
+data("hmKZNFs337")
+```
+
+We first load and prepare the datasets including the raw counts of KRAB-ZNFs and TEs.
+Then we convert the expression raw counts to TPM
+
+```{r}
+# genes
+df_hm_gene <- hmGene[,c(-1)]
+rownames(df_hm_gene) <- hmGene$geneID
+
+# transposable elements
+hsTEexp <- hmTE %>% select(-c(1,2,3))
+rownames(hsTEexp) <- hmTE$name  #908 TEs
+```
+
+```{r}
+# genes convert to tpm
+sample_counts <- colSums(df_hm_gene)
+
+scaling_factor <- sample_counts / 1e6
+
+df_hm_gene_tpm <- df_hm_gene
+df_hm_gene_tpm <- t(t(df_hm_gene_tpm)/ scaling_factor + 1) * 1e6
+df_hm_gene_tpm <- as.data.frame(df_hm_gene_tpm)
+
+# tes convert to tpm
+te_count <- colSums(hsTEexp)
+te_scale <- te_count / 1e6
+hsTE_tpm <- hsTEexp
+hsTE_tpm <- t(t(hsTE_tpm)/ te_scale + 1) * 1e6
+hsTE_tpm <- as.data.frame(hsTE_tpm)
+```
+
+
+
+```{r}
+hsKZNFexp <- df_hm_gene_tpm %>%
+    mutate(geneName=rownames(.)) %>%
+    inner_join(hmKZNFs337, join_by("geneName"=="ensembl_gene_id")) #337
+
+rownames(hsKZNFexp) <- hsKZNFexp$external_gene_name
+
+hsKZNFexp <- hsKZNFexp %>% select(-c(133, 134)) #keep only expression data
+```
+
+Then calculate their correlation first consider all the human data. 
+```{r}
+hsCorr <- corrOrthologTE(
+    geneInput = hsKZNFexp,
+    teInput = hsTE_tpm,
+    numCore = 3
+)
+
+hsCorr.sig <- hsCorr %>%filter(padj<0.001)
+```
+
+Next we calculate their correlation based on different brain cluster
+```{r}
+cluster_meta <- metadata %>% 
+    filter(Organism == "Homo sapiens") %>%
+    inner_join(brain_meta, join_by("brain_region"=="region"))
+
+cluster_Corr <- function(gene, te, cluster_num){
+    
+    cluster_id <- cluster_meta %>% 
+        filter(cluster == cluster_num) %>%
+        select(1)
+    
+    cluster_gene <- gene %>% select(cluster_id$Run)
+    cluster_te <- te %>% select(cluster_id$Run)
+    
+    st <- Sys.time()
+    df_temp <- corrOrthologTE(
+        geneInput = cluster_gene,
+        teInput = cluster_te,
+        numCore = 5
+    )
+    
+    et <- Sys.time()
+    print(et-st)
+    
+    df_temp <- df_temp %>%
+        mutate(pair = paste0(teName, ":", geneName))
+    
+    df_temp
+}
+
+```
+
+```{r}
+hsC1 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster1")
+hsC2 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster2")
+hsC3 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster3")
+hsC4 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster4")
+hsC5 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster5")
+hsC6 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster6")
+hsC7 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster7")
+
+```
+
+```{r}
+hsC1.sig <- hsC1 %>% filter(padj<0.001)
+hsC2.sig <- hsC2 %>% filter(padj<0.001)
+hsC3.sig <- hsC3 %>% filter(padj<0.001)
+hsC4.sig <- hsC4 %>% filter(padj<0.001)
+hsC5.sig <- hsC5 %>% filter(padj<0.001)
+hsC6.sig <- hsC6 %>% filter(padj<0.001)
+hsC7.sig <- hsC7 %>% filter(padj<0.001)
+```
+
+
+
+We test using coefficient 0.3 as threshold
+```{r}
+hist(hsC1.sig$coef)
+```
+
+```{r}
+hist(hsC2.sig$coef)
+```
+Then we create a script for testing on random gene sets
+```{r}
+set.seed(47)
+gene_list <- rownames(df_hm_gene_tpm)
+selected_genes <- replicate(1000, 
+                            sample(gene_list, size=337, replace=FALSE), 
+                            simplify = FALSE)
+
+cluster_random <- function(gene, te, cluster_num){
+    
+    cluster_id_c1 <- cluster_meta %>% 
+        filter(cluster == "cluster1") %>%
+        select(1)
+    
+    cluster_id_c2 <- cluster_meta %>%
+        filter(cluster == "cluster2") %>%
+        select(1)
+    
+    for (i in 1:1000){
+    
+        gene_set <- selected_genes[[i]]
+        
+        cluster_gene_c1 <- gene %>% select(cluster_id_c1$Run)
+        cluster_gene_c2 <- gene %>% select(cluster_id_c2$Run)
+        
+        cluster_gene_c1 <- cluster_gene_c1[rownames(cluster_gene_c1) %in% gene_set, ]
+        cluster_gene_c2 <- cluster_gene_c2[rownames(cluster_gene_c2) %in% gene_set, ]
+        
+        cluster_te_c1 <- te %>% select(cluster_id_c1$Run)
+        cluster_te_c2 <- te %>% select(cluster_id_c2$Run)
+        
+        df_c1 <- corrOrthologTE(
+            geneInput = cluster_gene_c1,
+            teInput = cluster_te_c1,
+            numCore = 5,
+            fileDir = "./results_c1",
+            fileName = paste0("gene_", i, "_vs_TE_corr.csv")
+        )
+        
+        df_c2 <- corrOrthologTE(
+            geneInput = cluster_gene_c2,
+            teInput = cluster_te_c2,
+            numCore = 5,
+            fileDir = "./results_c2",
+            fileName = paste0("gene_", i, "_vs_TE_corr.csv")
+        )
+        
+    }
+}
+
+```
+
+
