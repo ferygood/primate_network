@@ -38,44 +38,46 @@ selected_genes <- replicate(1000,
                             sample(gene_list, size=337, replace=FALSE),
                             simplify = FALSE)
 
-cluster_random <- function(gene, te, cluster_num){
 
-    cluster_id_c1 <- cluster_meta %>%
-        filter(cluster == "cluster1") %>%
-        select(1)
 
-    cluster_id_c2 <- cluster_meta %>%
-        filter(cluster == "cluster2") %>%
-        select(1)
+cluster_id_c1 <- cluster_meta %>%
+    filter(cluster == "cluster1") %>%
+    select(1)
 
-    for (i in 1:1000){
+cluster_id_c2 <- cluster_meta %>%
+    filter(cluster == "cluster2") %>%
+    select(1)
 
-        gene_set <- selected_genes[[i]]
+for (i in 1:1000){
 
-        cluster_gene_c1 <- gene %>% select(cluster_id_c1$Run)
-        cluster_gene_c2 <- gene %>% select(cluster_id_c2$Run)
+    gene_set <- selected_genes[[i]]
+    gene <- df_hm_gene_tpm
+    te <- hsTE_tpm
 
-        cluster_gene_c1 <- cluster_gene_c1[rownames(cluster_gene_c1) %in% gene_set, ]
-        cluster_gene_c2 <- cluster_gene_c2[rownames(cluster_gene_c2) %in% gene_set, ]
+    cluster_gene_c1 <- gene %>% select(cluster_id_c1$Run)
+    cluster_gene_c2 <- gene %>% select(cluster_id_c2$Run)
 
-        cluster_te_c1 <- te %>% select(cluster_id_c1$Run)
-        cluster_te_c2 <- te %>% select(cluster_id_c2$Run)
+    cluster_gene_c1 <- cluster_gene_c1[rownames(cluster_gene_c1) %in% gene_set, ]
+    cluster_gene_c2 <- cluster_gene_c2[rownames(cluster_gene_c2) %in% gene_set, ]
 
-        df_c1 <- corrOrthologTE(
-            geneInput = cluster_gene_c1,
-            teInput = cluster_te_c1,
-            numCore = 5,
-            fileDir = "./results_c1",
-            fileName = paste0("gene_", i, "_vs_TE_corr.csv")
-        )
+    cluster_te_c1 <- te %>% select(cluster_id_c1$Run)
+    cluster_te_c2 <- te %>% select(cluster_id_c2$Run)
 
-        df_c2 <- corrOrthologTE(
-            geneInput = cluster_gene_c2,
-            teInput = cluster_te_c2,
-            numCore = 5,
-            fileDir = "./results_c2",
-            fileName = paste0("gene_", i, "_vs_TE_corr.csv")
-        )
+    df_c1 <- corrOrthologTE(
+        geneInput = cluster_gene_c1,
+        teInput = cluster_te_c1,
+        numCore = 5,
+        fileDir = "./results_c1",
+        fileName = paste0("gene_", i, "_vs_TE_corr.csv")
+    )
 
-    }
+    df_c2 <- corrOrthologTE(
+        geneInput = cluster_gene_c2,
+        teInput = cluster_te_c2,
+        numCore = 5,
+        fileDir = "./results_c2",
+        fileName = paste0("gene_", i, "_vs_TE_corr.csv")
+    )
+
 }
+

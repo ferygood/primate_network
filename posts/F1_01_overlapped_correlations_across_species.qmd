@@ -8,8 +8,7 @@ load("../data/primateBrainData.RData")
 data("hmKZNFs337")
 ```
 
-We first load and prepare the datasets including the raw counts of KRAB-ZNFs and TEs.
-Then we convert the expression raw counts to TPM
+We first load and prepare the datasets including the raw counts of KRAB-ZNFs and TEs. Then we convert the expression raw counts to TPM
 
 ```{r}
 # genes
@@ -39,8 +38,6 @@ hsTE_tpm <- t(t(hsTE_tpm)/ te_scale + 1) * 1e6
 hsTE_tpm <- as.data.frame(hsTE_tpm)
 ```
 
-
-
 ```{r}
 hsKZNFexp <- df_hm_gene_tpm %>%
     mutate(geneName=rownames(.)) %>%
@@ -51,7 +48,8 @@ rownames(hsKZNFexp) <- hsKZNFexp$external_gene_name
 hsKZNFexp <- hsKZNFexp %>% select(-c(133, 134)) #keep only expression data
 ```
 
-Then calculate their correlation first consider all the human data. 
+Then calculate their correlation first consider all the human data.
+
 ```{r}
 hsCorr <- corrOrthologTE(
     geneInput = hsKZNFexp,
@@ -63,6 +61,7 @@ hsCorr.sig <- hsCorr %>%filter(padj<0.001)
 ```
 
 Next we calculate their correlation based on different brain cluster
+
 ```{r}
 cluster_meta <- metadata %>% 
     filter(Organism == "Homo sapiens") %>%
@@ -107,18 +106,17 @@ hsC7 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster7")
 ```
 
 ```{r}
-hsC1.sig <- hsC1 %>% filter(padj<0.001)
-hsC2.sig <- hsC2 %>% filter(padj<0.001)
-hsC3.sig <- hsC3 %>% filter(padj<0.001)
-hsC4.sig <- hsC4 %>% filter(padj<0.001)
-hsC5.sig <- hsC5 %>% filter(padj<0.001)
-hsC6.sig <- hsC6 %>% filter(padj<0.001)
-hsC7.sig <- hsC7 %>% filter(padj<0.001)
+hsC1.sig <- hsC1 %>% filter(padj<0.01 & abs(coef) >= 0.3) #127797
+hsC2.sig <- hsC2 %>% filter(padj<0.01 & abs(coef) >= 0.3) #49770
+hsC3.sig <- hsC3 %>% filter(padj<0.01) #0
+hsC4.sig <- hsC4 %>% filter(padj<0.01) #0
+hsC5.sig <- hsC5 %>% filter(padj<0.01) #110
+hsC6.sig <- hsC6 %>% filter(padj<0.01) #5
+hsC7.sig <- hsC7 %>% filter(padj<0.01) #1
 ```
 
-
-
 We test using coefficient 0.3 as threshold
+
 ```{r}
 hist(hsC1.sig$coef)
 ```
@@ -126,56 +124,25 @@ hist(hsC1.sig$coef)
 ```{r}
 hist(hsC2.sig$coef)
 ```
-Then we create a script for testing on random gene sets
-```{r}
-set.seed(47)
-gene_list <- rownames(df_hm_gene_tpm)
-selected_genes <- replicate(1000, 
-                            sample(gene_list, size=337, replace=FALSE), 
-                            simplify = FALSE)
 
-cluster_random <- function(gene, te, cluster_num){
-    
-    cluster_id_c1 <- cluster_meta %>% 
-        filter(cluster == "cluster1") %>%
-        select(1)
-    
-    cluster_id_c2 <- cluster_meta %>%
-        filter(cluster == "cluster2") %>%
-        select(1)
-    
-    for (i in 1:1000){
-    
-        gene_set <- selected_genes[[i]]
-        
-        cluster_gene_c1 <- gene %>% select(cluster_id_c1$Run)
-        cluster_gene_c2 <- gene %>% select(cluster_id_c2$Run)
-        
-        cluster_gene_c1 <- cluster_gene_c1[rownames(cluster_gene_c1) %in% gene_set, ]
-        cluster_gene_c2 <- cluster_gene_c2[rownames(cluster_gene_c2) %in% gene_set, ]
-        
-        cluster_te_c1 <- te %>% select(cluster_id_c1$Run)
-        cluster_te_c2 <- te %>% select(cluster_id_c2$Run)
-        
-        df_c1 <- corrOrthologTE(
-            geneInput = cluster_gene_c1,
-            teInput = cluster_te_c1,
-            numCore = 5,
-            fileDir = "./results_c1",
-            fileName = paste0("gene_", i, "_vs_TE_corr.csv")
-        )
-        
-        df_c2 <- corrOrthologTE(
-            geneInput = cluster_gene_c2,
-            teInput = cluster_te_c2,
-            numCore = 5,
-            fileDir = "./results_c2",
-            fileName = paste0("gene_", i, "_vs_TE_corr.csv")
-        )
-        
-    }
-}
+The script for running 1000 iterations of correlation in cluster 1 and cluster 2 can be found in `c1c2_correlation_script.R` .
+
+```{r}
+df_enrich <- read.csv("~/github/randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv")
+df_enrich <- df_enrich %>%
+    mutate(pair = paste0(teName, ":", geneName))
+
+c1_exo <- intersect(df_enrich$pair, hsC1.sig$pair) #869
+c2_exo <- intersect(df_enrich$pair, hsC2.sig$pair) #399
+group <- intersect(c1_exo, c2_exo) #367
 
 ```
 
+```{r}
+kznf_age <- read.csv("../data/kznf_bucket.csv")
+te_age <- read.csv("../data/Dfam_TE_simiiformes.csv")
 
+hsC1.sig.filter <- hsC1.sig %>%
+    filter(pair %in% group) 
+
+```

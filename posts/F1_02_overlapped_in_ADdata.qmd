@@ -1,0 +1,42 @@
+# Explore human temporal cortex and cerebellum data in control sample
+
+```{r}
+library(dplyr)
+
+# load ChIP-exo data
+df_enrich <- read.csv("~/github/randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv")
+
+# load AD data
+tcx <- mayoTEKRABber$tcxControlCorr
+cbe <- mayoTEKRABber$cbeControlCorr
+
+# filter data and combine pair column
+df_enrich <- df_enrich %>%
+    mutate(pair = paste0(teName, ":", geneName))
+
+df_tcx <- tcx %>%
+    filter(padj < 0.01) %>%
+    mutate(pair = paste0(teName, ":", geneName))
+
+df_cbe <- cbe %>%
+    filter(padj < 0.01) %>%
+    mutate(pair = paste0(teName, ":", geneName))
+
+print(length(intersect(df_tcx$pair, df_cbe$pair)))
+
+```
+
+```{r}
+tcx_exo <- intersect(df_tcx$pair, df_enrich$pair)
+cbe_exo <- intersect(df_cbe$pair, df_enrich$pair)
+
+print(paste0("temporal cortex is overlapped with ChIP-exo in: "))
+print(tcx_exo) # 59
+
+print(paste0("cerebellum is overlapped with ChIP-exo in: "))
+print(cbe_exo) # 91
+```
+
+```{r}
+
+```
