@@ -84,7 +84,8 @@ corr_human <- function(human_id){
     # let us assume the cutoff will be absolute cofficient larger than 0.3 and 
     # p-adj less than 0.01
     df_corr_sig <- df_corr %>%
-        filter(padj<0.01 & abs(coef)>=0.3)
+        filter(padj<0.01 & abs(coef)>=0.3) %>%
+        mutate(pair = paste0(teName, ":", geneName))
     
     neg_count <- df_corr_sig %>% filter(coef<0) %>% nrow()
     pos_count <- df_corr_sig %>% filter(coef>0) %>% nrow()
@@ -97,6 +98,8 @@ corr_human <- function(human_id){
     print(paste0("all correlation: ", total_count))
     print(paste0("unique KRAB-ZNFs: ", count_kznf))
     print(paste0("unique TEs: ", count_te))
+    
+    df_corr_sig
     
 }
 ```
@@ -119,7 +122,9 @@ c1_all <- corrOrthologTE(
     numCore = 5
 )
 
-c1_all_sig <- c1_all %>% filter(padj<0.01 & abs(coef)>=0.3)
+c1_all_sig <- c1_all %>% 
+    filter(padj<0.01 & abs(coef)>=0.3) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 ```
 
 | Sample      | -/+/all                 | unique KRAB-ZNFs | unique TEs |
@@ -131,5 +136,12 @@ c1_all_sig <- c1_all %>% filter(padj<0.01 & abs(coef)>=0.3)
 | no Hd       | 22494 / 102193 / 124687 | 317              | 878        |
 
 ```{r}
+df_enrich <- read.csv("~/github/randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv")
+df_enrich <- df_enrich %>%
+    mutate(pair = paste0(teName, ":", geneName))
+
+intersect_pair <- Reduce(intersect, list(c1_noHa$pair, c1_noHb$pair, c1_noHc$pair, c1_noHd$pair, df_enrich$pair)) #335: 241 positive correlation and 94 negative correlations
+
+
 
 ```
