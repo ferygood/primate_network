@@ -1,0 +1,135 @@
+# Leave one out analysis in human
+
+In primate brain data, human has four biological replicates and the NHPs only have three. Therefore, we make sure that the amount of correlation is not cause by higher biological replicate but because of species.
+
+```{r warning=FALSE, message=FALSE, eval=FALSE}
+library(TEKRABber)
+library(twice)
+library(dplyr)
+```
+
+We first load the metadata information and select sample ID within cluster 1 in human.
+
+```{r eval=FALSE}
+data("hmKZNFs337")
+
+meta_combine <- metadata %>% inner_join(brain_meta, join_by(brain_region==region))
+
+# prepare individual ID list
+group_noHa <- meta_combine %>%
+    filter(individual %in% c("hb", "hc", "hd")) %>%
+    filter(cluster=="cluster1")
+
+group_noHb <- meta_combine %>%
+    filter(individual %in% c("ha", "hc", "hd")) %>%
+    filter(cluster=="cluster1")
+
+group_noHc <- meta_combine %>%
+    filter(individual %in% c("ha", "hb", "hd")) %>%
+    filter(cluster=="cluster1")
+
+group_noHd <- meta_combine %>%
+    filter(individual %in% c("ha", "hb", "hc")) %>%
+    filter(cluster=="cluster1")
+
+```
+
+Then we convert the expression raw counts to TPM value. For genes, we select KRAB-ZNFs after the converting.
+
+```{r eval=FALSE}
+# genes convert to tpm
+hmGene_temp <- hmGene[,c(-1)]
+sample_counts <- colSums(hmGene_temp)
+
+scaling_factor <- sample_counts / 1e6
+
+hmGene_tpm <- hmGene_temp
+hmGene_tpm <- t(t(hmGene_tpm)/ scaling_factor + 1) * 1e6
+hmGene_tpm <- as.data.frame(hmGene_tpm)
+rownames(hmGene_tpm) <- hmGene$geneID
+
+# sebset only KRAB-ZNFs
+kznfs_tpm <- hmGene_tpm %>%
+    filter(rownames(.) %in% hmKZNFs337$ensembl_gene_id) %>%
+    mutate(name = rownames(.)) %>%
+    left_join(hmKZNFs337, join_by("name"=="ensembl_gene_id"))
+rownames(kznfs_tpm) <- kznfs_tpm$external_gene_name
+kznfs_tpm <- kznfs_tpm[,c(1:132)]
+
+
+# tes convert to tpm
+hmTE_temp <- hmTE[,-c(1,2,3)]
+te_count <- colSums(hmTE_temp)
+te_scale <- te_count / 1e6
+hmTE_tpm <- hmTE_temp
+hmTE_tpm <- t(t(hmTE_tpm)/ te_scale + 1) * 1e6
+hmTE_tpm <- as.data.frame(hmTE_tpm)
+rownames(hmTE_tpm) <- hmTE$name
+```
+
+Create a function called `corr_human` which filter the human ID for us and then calculate the correlations.
+
+```{r eval=FALSE}
+corr_human <- function(human_id){
+    
+    df_gene <- kznfs_tpm %>% select(human_id$Run)
+    df_te <- hmTE_tpm %>% select(human_id$Run)
+    
+    df_corr <- corrOrthologTE(
+        geneInput = df_gene,
+        teInput = df_te,
+        numCore = 5
+    )
+    
+    # let us assume the cutoff will be absolute cofficient larger than 0.3 and 
+    # p-adj less than 0.01
+    df_corr_sig <- df_corr %>%
+        filter(padj<0.01 & abs(coef)>=0.3)
+    
+    neg_count <- df_corr_sig %>% filter(coef<0) %>% nrow()
+    pos_count <- df_corr_sig %>% filter(coef>0) %>% nrow()
+    total_count <- nrow(df_corr_sig)
+    count_kznf <- length(unique(df_corr_sig$geneName))
+    count_te <- length(unique(df_corr_sig$teName))
+    
+    print(paste0("negative correlation: ", neg_count))
+    print(paste0("positive correlation: ", pos_count))
+    print(paste0("all correlation: ", total_count))
+    print(paste0("unique KRAB-ZNFs: ", count_kznf))
+    print(paste0("unique TEs: ", count_te))
+    
+}
+```
+
+Execute `corr_human` in cluster 1 leave one sample out analysis:
+
+```{r eval=FALSE}
+c1_noHa <- corr_human(group_noHa)
+c1_noHb <- corr_human(group_noHb)
+c1_noHc <- corr_human(group_noHc)
+c1_noHd <- corr_human(group_noHd)
+
+```
+
+```{r eval=FALSE}
+# calculate all 4 biological replicates
+c1_all <- corrOrthologTE(
+    geneInput = kznfs_tpm,
+    teInput = hmTE_tpm,
+    numCore = 5
+)
+
+c1_all_sig <- c1_all %>% filter(padj<0.01 & abs(coef)>=0.3)
+```
+
+| Sample      | -/+/all                 | unique KRAB-ZNFs | unique TEs |
+|-------------|-------------------------|------------------|------------|
+| all 4 human | 20713 / 81099 / 101812  | 334              | 894        |
+| no Ha       | 11050 / 54735 / 65785   | 303              | 849        |
+| no Hb       | 21835 / 87725 / 109560  | 315              | 859        |
+| no Hc       | 20132 / 75636 / 95768   | 318              | 861        |
+| no Hd       | 22494 / 102193 / 124687 | 317              | 878        |
+
+```{r}
+
+```

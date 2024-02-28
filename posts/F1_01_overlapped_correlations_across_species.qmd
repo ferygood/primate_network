@@ -1,6 +1,6 @@
 # Compare the overlaps between brain regions in human sample
 
-```{r warning=FALSE}
+```{r warning=FALSE, eval=FALSE}
 library(TEKRABber)
 library(twice)
 library(tidyverse)
@@ -10,7 +10,7 @@ data("hmKZNFs337")
 
 We first load and prepare the datasets including the raw counts of KRAB-ZNFs and TEs. Then we convert the expression raw counts to TPM
 
-```{r}
+```{r eval=FALSE}
 # genes
 df_hm_gene <- hmGene[,c(-1)]
 rownames(df_hm_gene) <- hmGene$geneID
@@ -20,7 +20,7 @@ hsTEexp <- hmTE %>% select(-c(1,2,3))
 rownames(hsTEexp) <- hmTE$name  #908 TEs
 ```
 
-```{r}
+```{r eval=FALSE}
 # genes convert to tpm
 sample_counts <- colSums(df_hm_gene)
 
@@ -38,7 +38,7 @@ hsTE_tpm <- t(t(hsTE_tpm)/ te_scale + 1) * 1e6
 hsTE_tpm <- as.data.frame(hsTE_tpm)
 ```
 
-```{r}
+```{r eval=FALSE}
 hsKZNFexp <- df_hm_gene_tpm %>%
     mutate(geneName=rownames(.)) %>%
     inner_join(hmKZNFs337, join_by("geneName"=="ensembl_gene_id")) #337
@@ -50,7 +50,7 @@ hsKZNFexp <- hsKZNFexp %>% select(-c(133, 134)) #keep only expression data
 
 Then calculate their correlation first consider all the human data.
 
-```{r}
+```{r eval=FALSE}
 hsCorr <- corrOrthologTE(
     geneInput = hsKZNFexp,
     teInput = hsTE_tpm,
@@ -62,7 +62,7 @@ hsCorr.sig <- hsCorr %>%filter(padj<0.001)
 
 Next we calculate their correlation based on different brain cluster
 
-```{r}
+```{r eval=FALSE}
 cluster_meta <- metadata %>% 
     filter(Organism == "Homo sapiens") %>%
     inner_join(brain_meta, join_by("brain_region"=="region"))
@@ -94,7 +94,7 @@ cluster_Corr <- function(gene, te, cluster_num){
 
 ```
 
-```{r}
+```{r eval=FALSE}
 hsC1 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster1")
 hsC2 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster2")
 hsC3 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster3")
@@ -105,7 +105,7 @@ hsC7 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster7")
 
 ```
 
-```{r}
+```{r eval=FALSE}
 hsC1.sig <- hsC1 %>% filter(padj<0.01 & abs(coef) >= 0.3) #127797
 hsC2.sig <- hsC2 %>% filter(padj<0.01 & abs(coef) >= 0.3) #49770
 hsC3.sig <- hsC3 %>% filter(padj<0.01) #0
@@ -117,17 +117,17 @@ hsC7.sig <- hsC7 %>% filter(padj<0.01) #1
 
 We test using coefficient 0.3 as threshold
 
-```{r}
+```{r eval=FALSE}
 hist(hsC1.sig$coef)
 ```
 
-```{r}
+```{r eval=FALSE}
 hist(hsC2.sig$coef)
 ```
 
 The script for running 1000 iterations of correlation in cluster 1 and cluster 2 can be found in `c1c2_correlation_script.R` .
 
-```{r}
+```{r eval=FALSE}
 df_enrich <- read.csv("~/github/randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv")
 df_enrich <- df_enrich %>%
     mutate(pair = paste0(teName, ":", geneName))
@@ -138,7 +138,7 @@ group <- intersect(c1_exo, c2_exo) #367
 
 ```
 
-```{r}
+```{r eval=FALSE}
 kznf_age <- read.csv("../data/kznf_bucket.csv")
 te_age <- read.csv("../data/Dfam_TE_simiiformes.csv")
 

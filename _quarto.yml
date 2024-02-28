@@ -9,7 +9,9 @@ book:
     collapse-level: 1
   chapters:
     - index.qmd
-    - part: "Discover Correlations"
+    - part: "Chapter 1 define correlation cutoff"
       chapters:
         - posts/F1_00_report.qmd
         - posts/F1_01_overlapped_correlations_across_species.qmd
+        - posts/F1_02_overlapped_in_ADdata.qmd
+        - posts/F1_03_leave_one_out_human.qmd

@@ -1,6 +1,6 @@
 # Explore human temporal cortex and cerebellum data in control sample
 
-```{r}
+```{r eval=FALSE}
 library(dplyr)
 
 # load ChIP-exo data
@@ -26,7 +26,7 @@ print(length(intersect(df_tcx$pair, df_cbe$pair)))
 
 ```
 
-```{r}
+```{r eval=FALSE}
 tcx_exo <- intersect(df_tcx$pair, df_enrich$pair)
 cbe_exo <- intersect(df_cbe$pair, df_enrich$pair)
 
