@@ -16,6 +16,3 @@ book:
         - posts/F1_02_overlapped_in_ADdata.qmd
         - posts/F1_03_leave_one_out_human.qmd
         - posts/F1_04_c1_correlation_check.qmd
-        - posts/F1_05_c2_correlation_check.qmd
-        - posts/F1_06_tcx_correlation_check.qmd
-        - posts/F1_07_cbe_correlation_check.qmd

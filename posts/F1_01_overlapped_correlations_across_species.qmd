@@ -1,6 +1,6 @@
 # Compare the overlaps between brain regions in human sample
 
-```{r eval=FALSE, message=FALSE}
+```{r eval=FALSE}
 library(TEKRABber)
 library(twice)
 library(tidyverse)
@@ -137,7 +137,6 @@ c2_exo <- intersect(df_enrich$pair, hsC2.sig$pair) #399
 group <- intersect(c1_exo, c2_exo) #367
 
 ```
-
 
 ```{r eval=FALSE}
 kznf_age <- read.csv("../data/kznf_bucket.csv")

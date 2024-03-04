@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.550">
+<meta name="generator" content="quarto-1.4.549">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Primate Brain Network</title>
+<title>Primate Brain Network - 1&nbsp; Check correlation report</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -72,7 +72,7 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="nav-sidebar floating fullcontent">
+<body class="nav-sidebar floating">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -81,7 +81,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_00_report.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">F1_00_report.html</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_00_report.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Check correlation report</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -124,7 +124,7 @@ ul.task-list li input[type="checkbox"] {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../posts/F1_00_report.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">F1_00_report.html</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Check correlation report</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -145,6 +145,12 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Leave one out analysis in human</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F1_04_c1_correlation_check.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -152,13 +158,135 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_00_report.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Check correlation report</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Check correlation report</span></h1>
+</div>
 
 
 
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>We first divide brain cluster following the reference paper into 7 clusters and find only cluster1 and cluster2 have enough correlations (after running TEKRABber).</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Cluster</th>
+<th>correlations (padj&lt;0.01)</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>127797</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>49770</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>110</td>
+<td>all positive correlations</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>5</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>1</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>We then used 1000 iterations to test if KRAB-ZNFs are more correlated to TEs than random selected genes. Results show that KRAB-ZNFs are more correlated to TEs than random genes. (correlation adjusted pval &lt; 0.01).</p>
+<p><img src="../figures/barplot_c1c2_check.jpg" class="img-fluid" width="520"></p>
+<p>We now know that KRAB-ZNFs are more correlated to TEs. We next want to define the coefficient values for correlations. Utilizing the supplementary table 6 from Imbeault 2017, representing the enrichment of KZFPs within precise transposable element subfamilies (we use score larger than 1.33, -log10 pvalue) and select 2296 pair of TE:KRAB-ZNF as a reference, we compare with our data and collect a set of overlapped correlations:</p>
+<p><img src="../figures/correlation_check_c1.jpg" class="img-fluid" width="395"></p>
+<p><img src="../figures/correlation_check_c2.jpg" class="img-fluid" width="391"></p>
+<p>We think that coefficient 0.4 with adjusted pvalue &lt; 0.01 is a good choose</p>
+<p>Also, we conduct a leave-one-out analysis in human (4 biological replicates) because later on we are going to compare with other NHPs.</p>
+<table class="table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 36%">
+<col style="width: 26%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Sample</th>
+<th>-/+/all</th>
+<th>unique KRAB-ZNFs</th>
+<th>unique TEs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>all 4 human</td>
+<td>26810 / 100987 / 127797</td>
+<td>325</td>
+<td>882</td>
+</tr>
+<tr class="even">
+<td>no Ha</td>
+<td>11050 / 54735 / 65785</td>
+<td>303</td>
+<td>849</td>
+</tr>
+<tr class="odd">
+<td>no Hb</td>
+<td>21835 / 87725 / 109560</td>
+<td>315</td>
+<td>859</td>
+</tr>
+<tr class="even">
+<td>no Hc</td>
+<td>20132 / 75636 / 95768</td>
+<td>318</td>
+<td>861</td>
+</tr>
+<tr class="odd">
+<td>no Hd</td>
+<td>22494 / 102193 / 124687</td>
+<td>317</td>
+<td>878</td>
+</tr>
+</tbody>
+</table>
+<p>We here conclude that different sample number affect the number of correlations, especially in noHa group. Therefore, we select the correlations that at least to be present in three biological replicates as the final overlapped TE:KRAB-ZNF for our down-stream analysis</p>
+<p>Finally, c1 cluster has 335 correlation (241 positive and 94 negative). file saved as <code>tables/c1_confirm_correlation.csv</code> c2 cluster has 64 correlation (35 positive and 29 negative). file saved as <code>tables/c2_confirm_correlation.csv</code></p>
 
 
 
@@ -552,12 +680,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../index.html" class="pagination-link" aria-label="Introduction">
+      <a href="../index.html" class="pagination-link  aria-label=" introduction"="">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Introduction</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../posts/F1_01_overlapped_correlations_across_species.html" class="pagination-link" aria-label="Compare the overlaps between brain regions in human sample">
+      <a href="../posts/F1_01_overlapped_correlations_across_species.html" class="pagination-link" aria-label="<span class='chapter-number'>2</span>&nbsp; <span class='chapter-title'>Compare the overlaps between brain regions in human sample</span>">
         <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Compare the overlaps between brain regions in human sample</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
