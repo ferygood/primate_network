@@ -37,6 +37,3 @@ print(paste0("cerebellum is overlapped with ChIP-exo in: "))
 print(cbe_exo) # 91
 ```
 
-```{r}
-
-```

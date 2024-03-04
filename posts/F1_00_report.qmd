@@ -1,0 +1,40 @@
+# Check correlation report
+
+We first divide brain cluster following the reference paper into 7 clusters and find only cluster1 and cluster2 have enough correlations (after running TEKRABber).
+
+| Cluster | correlations (padj\<0.01) | Note                      |
+|---------|---------------------------|---------------------------|
+| 1       | 127797                    |                           |
+| 2       | 49770                     |                           |
+| 3       | 0                         |                           |
+| 4       | 0                         |                           |
+| 5       | 110                       | all positive correlations |
+| 6       | 5                         |                           |
+| 7       | 1                         |                           |
+
+We then used 1000 iterations to test if KRAB-ZNFs are more correlated to TEs than random selected genes. Results show that KRAB-ZNFs are more correlated to TEs than random genes. (correlation adjusted pval \< 0.01).
+
+![](/figures/barplot_c1c2_check.jpg){width="520"}
+
+We now know that KRAB-ZNFs are more correlated to TEs. We next want to define the coefficient values for correlations. Utilizing the supplementary table 6 from Imbeault 2017, representing the enrichment of KZFPs within precise transposable element subfamilies (we use score larger than 1.33, -log10 pvalue) and select 2296 pair of TE:KRAB-ZNF as a reference, we compare with our data and collect a set of overlapped correlations:
+
+![](/figures/correlation_check_c1.jpg){width="395"}
+
+![](/figures/correlation_check_c2.jpg){width="391"}
+
+We think that coefficient 0.4 with adjusted pvalue \< 0.01 is a good choose
+
+Also, we conduct a leave-one-out analysis in human (4 biological replicates) because later on we are going to compare with other NHPs.
+
+| Sample      | -/+/all                 | unique KRAB-ZNFs | unique TEs |
+|-------------|-------------------------|------------------|------------|
+| all 4 human | 26810 / 100987 / 127797 | 325              | 882        |
+| no Ha       | 11050 / 54735 / 65785   | 303              | 849        |
+| no Hb       | 21835 / 87725 / 109560  | 315              | 859        |
+| no Hc       | 20132 / 75636 / 95768   | 318              | 861        |
+| no Hd       | 22494 / 102193 / 124687 | 317              | 878        |
+
+We here conclude that different sample number affect the number of correlations, especially in noHa group. Therefore, we select the correlations that at least to be present in three biological replicates as the final overlapped TE:KRAB-ZNF for our down-stream analysis
+
+Finally, c1 cluster has 335 correlation (241 positive and 94 negative). file saved as `tables/c1_confirm_correlation.csv`
+c2 cluster has 64 correlation (35 positive and 29 negative). file saved as `tables/c2_confirm_correlation.csv`

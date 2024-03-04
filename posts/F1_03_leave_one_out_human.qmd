@@ -84,7 +84,7 @@ corr_human <- function(human_id){
     # let us assume the cutoff will be absolute cofficient larger than 0.3 and 
     # p-adj less than 0.01
     df_corr_sig <- df_corr %>%
-        filter(padj<0.01 & abs(coef)>=0.3) %>%
+        filter(padj<0.01 & abs(coef)>=0.4) %>%
         mutate(pair = paste0(teName, ":", geneName))
     
     neg_count <- df_corr_sig %>% filter(coef<0) %>% nrow()
@@ -116,32 +116,89 @@ c1_noHd <- corr_human(group_noHd)
 
 ```{r eval=FALSE}
 # calculate all 4 biological replicates
+c1_id <- meta_combine %>% filter(cluster=="cluster1") %>% select(Run) %>% unlist()
+
 c1_all <- corrOrthologTE(
-    geneInput = kznfs_tpm,
-    teInput = hmTE_tpm,
+    geneInput = kznfs_tpm[colnames(kznfs_tpm) %in% c1_id],
+    teInput = hmTE_tpm[colnames(hmTE_tpm) %in% c1_id],
     numCore = 5
 )
 
 c1_all_sig <- c1_all %>% 
-    filter(padj<0.01 & abs(coef)>=0.3) %>%
+    filter(padj<0.01 & abs(coef)>=0.4) %>%
     mutate(pair = paste0(teName, ":", geneName))
 ```
 
 | Sample      | -/+/all                 | unique KRAB-ZNFs | unique TEs |
 |-------------|-------------------------|------------------|------------|
-| all 4 human | 20713 / 81099 / 101812  | 334              | 894        |
+| all 4 human | 26810 / 100987 / 127797 | 325              | 882        |
 | no Ha       | 11050 / 54735 / 65785   | 303              | 849        |
 | no Hb       | 21835 / 87725 / 109560  | 315              | 859        |
 | no Hc       | 20132 / 75636 / 95768   | 318              | 861        |
 | no Hd       | 22494 / 102193 / 124687 | 317              | 878        |
 
-```{r}
+```{r eval=FALSE}
 df_enrich <- read.csv("~/github/randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv")
 df_enrich <- df_enrich %>%
     mutate(pair = paste0(teName, ":", geneName))
 
 intersect_pair <- Reduce(intersect, list(c1_noHa$pair, c1_noHb$pair, c1_noHc$pair, c1_noHd$pair, df_enrich$pair)) #335: 241 positive correlation and 94 negative correlations
 
+write.csv(intersect_pair, file="../tables/c1_confirm_correlation.csv", row.names=F)
+```
+
+```{r eval=FALSE}
+# test for cluster 2
+meta_combine <- metadata %>% inner_join(brain_meta, join_by(brain_region==region))
+
+# prepare individual ID list
+group_noHa_c2 <- meta_combine %>%
+    filter(individual %in% c("hb", "hc", "hd")) %>%
+    filter(cluster=="cluster2")
+
+group_noHb_c2 <- meta_combine %>%
+    filter(individual %in% c("ha", "hc", "hd")) %>%
+    filter(cluster=="cluster2")
+
+group_noHc_c2 <- meta_combine %>%
+    filter(individual %in% c("ha", "hb", "hd")) %>%
+    filter(cluster=="cluster2")
+
+group_noHd_c2 <- meta_combine %>%
+    filter(individual %in% c("ha", "hb", "hc")) %>%
+    filter(cluster=="cluster2")
 
 
+# calculate all 4 biological replicates
+c2_id <- meta_combine %>% filter(cluster=="cluster2") %>% select(Run) %>% unlist()
+
+c2_all <- corrOrthologTE(
+    geneInput = kznfs_tpm[colnames(kznfs_tpm) %in% c2_id],
+    teInput = hmTE_tpm[colnames(hmTE_tpm) %in% c2_id],
+    numCore = 5
+)
+
+c2_all_sig <- c2_all %>% 
+    filter(padj<0.01 & abs(coef)>=0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
+
+c2_noHa <- corr_human(group_noHa_c2)
+c2_noHb <- corr_human(group_noHb_c2)
+c2_noHc <- corr_human(group_noHc_c2)
+c2_noHd <- corr_human(group_noHd_c2)
+
+```
+
+| Sample      | -/+/all               | unique KRAB-ZNFs | unique TEs |
+|-------------|-----------------------|------------------|------------|
+| all 4 human | 11475 / 38295 / 49770 | 306              | 852        |
+| no Ha       | 2717 / 10006 / 12723  | 253              | 752        |
+| no Hb       | 9773 / 25666 / 35439  | 281              | 783        |
+| no Hc       | 4807 / 16536 / 21343  | 282              | 767        |
+| no Hd       | 9028 / 40769 / 49797  | 291              | 823        |
+
+```{r eval=FALSE}
+intersect_pair_c2 <- Reduce(intersect, list(c2_noHa$pair, c2_noHb$pair, c2_noHc$pair, c2_noHd$pair, df_enrich$pair)) #64: 35 positive correlation and 29 negative correlations
+
+write.csv(intersect_pair_c2, file="../tables/c2_confirm_correlation.csv", row.names=F)
 ```
