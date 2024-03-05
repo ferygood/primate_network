@@ -116,7 +116,9 @@ c1_noHd <- corr_human(group_noHd)
 
 ```{r eval=FALSE}
 # calculate all 4 biological replicates
-c1_id <- meta_combine %>% filter(cluster=="cluster1") %>% select(Run) %>% unlist()
+c1_id <- meta_combine %>% 
+    filter(cluster=="cluster1" & Organism=="Homo sapiens") %>% 
+    select(Run) %>% unlist()
 
 c1_all <- corrOrthologTE(
     geneInput = kznfs_tpm[colnames(kznfs_tpm) %in% c1_id],

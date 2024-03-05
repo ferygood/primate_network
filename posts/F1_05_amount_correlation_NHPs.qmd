@@ -1,0 +1,67 @@
+# Compare the count of correlation in NHPs
+
+```{r eval=FALSE}
+library(dplyr)
+library(twice)
+```
+
+```{r eval=FALSE}
+data("hmKZNFs337")
+meta_combine <- metadata %>% inner_join(brain_meta, join_by(brain_region==region))
+```
+
+```{r eval=FALSE}
+# for chimpanzee c1 and c2
+c1_pt <- meta_combine %>% filter(cluster=="cluster1" & Organism=="Pan troglodytes") %>% select(Run)
+c2_pt <- meta_combine %>% filter(cluster=="cluster2" & Organism=="Pan troglodytes") %>% select(Run)
+
+# for bonobo c1 and c2
+c1_pp <- meta_combine %>% filter(cluster=="cluster1" & Organism=="Pan paniscus") %>% select(Run)
+c2_pp <- meta_combine %>% filter(cluster=="cluster2" & Organism=="Pan paniscus") %>% select(Run)
+
+# for macaqe c1 and c2
+c1_mm <- meta_combine %>% filter(cluster=="cluster1" & Organism=="Macaca mulatta") %>% select(Run)
+c2_mm <- meta_combine %>% filter(cluster=="cluster2" & Organism=="Macaca mulatta") %>% select(Run)
+```
+
+```{r}
+# genes convert to tpm
+convert_tpm <- function(dfGene, dfTE){
+
+    gene_temp <- dfGene[,c(-1)]
+    sample_counts <- colSums(gene_temp)
+    
+    scaling_factor <- sample_counts / 1e6
+    
+    gene_tpm <- hmGene_temp
+    gene_tpm <- t(t(gene_temp)/ scaling_factor + 1) * 1e6
+    gene_tpm <- as.data.frame(gene_tpm)
+    rownames(gene_tpm) <- dfGene$geneID
+    
+    # sebset only KRAB-ZNFs
+    kznfs_tpm <- gene_tpm %>%
+        filter(rownames(.) %in% hmKZNFs337$ensembl_gene_id) %>%
+        mutate(name = rownames(.)) %>%
+        left_join(hmKZNFs337, join_by("name"=="ensembl_gene_id"))
+    rownames(kznfs_tpm) <- kznfs_tpm$external_gene_name
+    n_col <- ncol(kznfs_tpm) - 2
+    kznfs_tpm <- kznfs_tpm[,c(1:n_col)]
+    
+    
+    # tes convert to tpm
+    te_temp <- dfTE[,-c(1,2,3)]
+    te_count <- colSums(te_temp)
+    te_scale <- te_count / 1e6
+    te_tpm <- t(t(te_temp)/ te_scale + 1) * 1e6
+    te_tpm <- as.data.frame(te_tpm)
+    rownames(te_tpm) <- dfTE$name
+    
+    result <- list(
+        "geneTable"=kznfs_tpm, 
+        "teTable"=te_tpm)
+    result
+}
+    
+
+```
+
