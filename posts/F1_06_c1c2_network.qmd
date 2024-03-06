@@ -1,0 +1,67 @@
+# Create network using highly confident TE:KRAB-ZNF
+
+![](/figures/c1_335_hm_network.png){width="457"}
+
+```{r eval=FALSE}
+library(dplyr)
+library(RCy3)
+```
+
+Load data
+
+```{r eval=FALSE}
+kznf_age <- read.csv("../data/kznf_bucket.csv")
+hm_c1 <- read.csv("../tables/hsC1_corr_sig.csv")
+hm_c2 <- read.csv("../tables/hsC2_corr_sig.csv")
+
+c1_list <- read.csv("../tables/c1_confirm_correlation.csv")
+c2_list <- read.csv("../tables/c2_confirm_correlation.csv")
+```
+
+Filter only high confidence pair
+
+```{r eval=FALSE}
+hm_c1_sig <- hm_c1 %>% filter(pair %in% c1_list$x)
+hm_c2_sig <- hm_c2 %>% filter(pair %in% c2_list$x)
+```
+
+In cluster 1
+
+```{r eval=FALSE}
+#1. How many unique KRAB-ZNFs and TEs?
+length(unique(hm_c1_sig$geneName)) #59
+length(unique(hm_c1_sig$teName)) #167
+
+#2. How many unique KRAB-ZNFs and TEs in positive and negative?
+hm_c1_sig %>% filter(coef>0) %>% distinct(geneName) %>% nrow() #52 in positive
+hm_c1_sig %>% filter(coef<0) %>% distinct(geneName) %>% nrow() #23 in negative
+hm_c1_sig %>% filter(coef>0) %>% distinct(teName) %>% nrow() #132 in positive
+hm_c1_sig %>% filter(coef<0) %>% distinct(teName) %>% nrow() #53 in negative
+
+#3. the age of these KRAB-ZNFs
+pos_kznf <- hm_c1_sig %>% 
+    filter(coef>0) %>% 
+    count(geneName, name = "link") %>%
+    mutate(coef="positive") %>%
+    left_join(kznf_age[,c(2,6)], join_by(geneName == external_gene_name))
+
+neg_kznf <- hm_c1_sig %>%
+    filter(coef<0) %>%
+    count(geneName, name = "link") %>%
+    mutate(coef="negative") %>%
+    left_join(kznf_age[,c(2,6)], join_by(geneName == external_gene_name))
+
+intersect(pos_kznf$geneName, neg_kznf$geneName) # there are 16 of them have both positive and negative correlation
+
+df_kznf_merge <- rbind(pos_kznf, neg_kznf)
+write.csv(df_kznf_merge, file="../tables/c1_Hm_335_linkCount.csv", row.names=FALSE)
+
+c1.node <- data.frame(
+    id=c(unique(hm_c1_sig$geneName), unique(hm_c1_sig$teName))
+)
+
+c1.link <- hm_c1_sig[,c(1,2,3)]
+colnames(c1.link) <- c("source", "target", "coefficnet")
+
+createNetworkFromDataFrames(c1.node, c1.link)
+```

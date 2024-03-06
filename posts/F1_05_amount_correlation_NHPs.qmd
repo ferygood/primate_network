@@ -3,6 +3,7 @@
 ```{r eval=FALSE}
 library(dplyr)
 library(twice)
+library(TEKRABber)
 ```
 
 ```{r eval=FALSE}
@@ -24,29 +25,36 @@ c1_mm <- meta_combine %>% filter(cluster=="cluster1" & Organism=="Macaca mulatta
 c2_mm <- meta_combine %>% filter(cluster=="cluster2" & Organism=="Macaca mulatta") %>% select(Run)
 ```
 
+convert gene ID to gene Name in all NHPs
+
+```{r}
+ptGene_name <- ptGene[,-1]
+rownames(ptGene_name) <- ptGene$geneID
+ptGene_name <- ensIDtoName(ptGene_name, species = "ptroglodytes")
+
+ppGene_name <- ppGene[,-1]
+rownames(ppGene_name) <- ppGene$geneID
+ppGene_name <- ensIDtoName(ppGene_name, species = "ppaniscus")
+
+mmGene_name <- mmGene[,-1]
+rownames(mmGene_name) <- mmGene$geneID
+mmGene_name <- ensIDtoName(mmGene_name, species = "mmulatta")
+```
+
 ```{r}
 # genes convert to tpm
 convert_tpm <- function(dfGene, dfTE){
 
-    gene_temp <- dfGene[,c(-1)]
+    gene_temp <- dfGene
     sample_counts <- colSums(gene_temp)
-    
     scaling_factor <- sample_counts / 1e6
-    
-    gene_tpm <- hmGene_temp
     gene_tpm <- t(t(gene_temp)/ scaling_factor + 1) * 1e6
     gene_tpm <- as.data.frame(gene_tpm)
-    rownames(gene_tpm) <- dfGene$geneID
+    rownames(gene_tpm) <- rownames(dfGene)
     
     # sebset only KRAB-ZNFs
     kznfs_tpm <- gene_tpm %>%
-        filter(rownames(.) %in% hmKZNFs337$ensembl_gene_id) %>%
-        mutate(name = rownames(.)) %>%
-        left_join(hmKZNFs337, join_by("name"=="ensembl_gene_id"))
-    rownames(kznfs_tpm) <- kznfs_tpm$external_gene_name
-    n_col <- ncol(kznfs_tpm) - 2
-    kznfs_tpm <- kznfs_tpm[,c(1:n_col)]
-    
+        filter(rownames(.) %in% hmKZNFs337$external_gene_name)
     
     # tes convert to tpm
     te_temp <- dfTE[,-c(1,2,3)]
@@ -61,7 +69,103 @@ convert_tpm <- function(dfGene, dfTE){
         "teTable"=te_tpm)
     result
 }
+
+corr_cluster <- function(tpm_obj, cluster_id){
     
+    geneTable <- tpm_obj$geneTable
+    geneTable_cluster <- geneTable[colnames(geneTable) %in% cluster_id$Run, ]
+    
+    teTable <- tpm_obj$teTable
+    teTable_cluster <- teTable[colnames(teTable) %in% cluster_id$Run, ]
+    
+    df_corr <- corrOrthologTE(
+        geneInput = geneTable_cluster,
+        teInput = teTable_cluster,
+        numCore = 5
+    )
+    
+    df_corr <- df_corr %>%
+        mutate(pair = paste0(teName, ":", geneName))
+    
+    df_corr
+}
+    
+```
+
+```{r}
+ptTE_filter <- ptTE[!duplicated(ptTE$name), ]
+ppTE_filter <- ppTE[!duplicated(ppTE$name), ]
+mmTE_filter <- mmTE[!duplicated(mmTE$name), ]
+
+# chimpanzee
+pt_obj <- convert_tpm(ptGene_name, ptTE_filter)
+pt_corr_c1 <- corr_cluster(pt_obj, c1_pt)
+pt_corr_c2 <- corr_cluster(pt_obj, c2_pt)
+
+# bonobo
+pp_obj <- convert_tpm(ppGene_name, ppTE_filter)
+pp_corr_c1 <- corr_cluster(pp_obj, c1_pp)
+pp_corr_c2 <- corr_cluster(pp_obj, c2_pp)
+
+# macaque
+mm_obj <- convert_tpm(mmGene_name, mmTE_filter)
+mm_corr_c1 <- corr_cluster(mm_obj, c1_mm)
+mm_corr_c2 <- corr_cluster(mm_obj, c2_mm)
 
 ```
 
+| sample (cluster1) | -/+/all        | unique KRAB-ZNFs | unique TEs |
+|-------------------|----------------|------------------|------------|
+| chimpanzee        | 933/954/1887   | 92               | 364        |
+| bonobo            | 1093/1438/2531 | 65               | 350        |
+| macaque           | 408/570/978    | 75               | 351        |
+
+| sample (cluster2) | -/+/all       | unique KRAB-ZNFs | unique TEs |
+|-------------------|---------------|------------------|------------|
+| chimpanzee        | 601/435/1036  | 74               | 293        |
+| bonobo            | 302/1332/1634 | 63               | 285        |
+| macaque           | 508/380/888   | 69               | 303        |
+
+Compare overlapped with human data
+
+```{r}
+library(ComplexHeatmap)
+hm_c1 <- read.csv("../tables/c1_confirm_correlation.csv")
+hm_c2 <- read.csv("../tables/c2_confirm_correlation.csv")
+
+# cluster 1
+pt_c1_filter <- pt_corr_c1 %>% filter(pair %in% hm_c1$x)
+pp_c1_filter <- pp_corr_c1 %>% filter(pair %in% hm_c1$x)
+mm_c1_filter <- mm_corr_c1 %>% filter(pair %in% hm_c1$x)
+
+lt_c1 <- list(
+    human = hm_c1$x, chimp = pt_c1_filter$pair, 
+    bonobo = pp_c1_filter$pair, macaque = mm_c1_filter$pair)
+
+
+m_c1 <- make_comb_mat(lt_c1)
+
+png("../figures/upset_plot_c1.png", width=5, height=3, units="in", res=400)
+u_c1 <- UpSet(m_c1, comb_order=order(-comb_size(m_c1)), top_annotation=upset_top_annotation(m_c1, add_numbers=TRUE))
+print(u_c1)
+dev.off()
+
+# cluster 2
+pt_c2_filter <- pt_corr_c2 %>% filter(pair %in% hm_c2$x )
+pp_c2_filter <- pp_corr_c2 %>% filter(pair %in% hm_c2$x)
+mm_c2_filter <- mm_corr_c2 %>% filter(pair %in% hm_c2$x)
+
+lt_c2 <- list(
+    human = hm_c2$x, chimp = pt_c2_filter$pair, 
+    bonobo = pp_c2_filter$pair, macaque = mm_c2_filter$pair)
+
+
+m_c2 <- make_comb_mat(lt_c2)
+
+png("../figures/upset_plot_c2.png", width=5, height=3, units="in", res=400)
+u_c2 <- UpSet(m_c2, comb_order=order(-comb_size(m_c2)), top_annotation=upset_top_annotation(m_c2, add_numbers=TRUE))
+print(u_c2)
+dev.off()
+
+
+```
