@@ -5,6 +5,7 @@
 ```{r eval=FALSE}
 library(dplyr)
 library(RCy3)
+library(netZooR)
 ```
 
 Load data
@@ -62,6 +63,26 @@ c1.node <- data.frame(
 
 c1.link <- hm_c1_sig[,c(1,2,3)]
 colnames(c1.link) <- c("source", "target", "coefficnet")
+
+createNetworkFromDataFrames(c1.node, c1.link)
+```
+
+```{r eval=FALSE}
+node_pair <- hm_c1_sig[,c(2,1,3)]
+node_pair$coef <- abs(node_pair$coef)
+c1_condor_obj <- createCondorObject(node_pair)
+c1_condor_obj <- condorCluster(c1_condor_obj, cs.method = "LEC", project=F)
+
+kznf_com <- c1_condor_obj$blue.memb
+colnames(kznf_com)[1] <- "id"
+te_com <- c1_condor_obj$red.memb
+colnames(te_com)[1] <- "id"
+df_com <- rbind(kznf_com, te_com)
+
+c1.node <- c1.node %>%
+    left_join(df_com, join_by(id==id))
+colnames(c1.node)[2] <- "group"
+c1.node$group <- as.character(c1.node$group)
 
 createNetworkFromDataFrames(c1.node, c1.link)
 ```

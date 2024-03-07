@@ -5,8 +5,8 @@ read_rds_files("data/results_rdata")
 load("data/mayoTEKRABber_balance.RData")
 
 # 3. age inference
-kznf_infer <- read.csv("data/kznf_bucket.csv")
-te_infer <- read.csv("data/Dfam_TE_simiiformes.csv", row.names = 1)
+kznf_infer <- utils::read.csv("data/kznf_bucket.csv")
+te_infer <- utils::read.csv("data/Dfam_TE_simiiformes.csv", row.names = 1)
 
 detach(package:dplyr)
 library(dplyr)
