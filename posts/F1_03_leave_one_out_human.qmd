@@ -1,6 +1,6 @@
 # Leave one out analysis in human
 
-In primate brain data, human has four biological replicates and the NHPs only have three. Therefore, we make sure that the amount of correlation is not cause by higher biological replicate but because of species.
+In primate brain data, human has four biological replicates and the NHPs only have three. Therefore, we make sure that the amount of correlation is not cause by higher biological replicate but because of species. However, our results suggest that different number will affect the correlation results. Therefore, we consider correlations that only existed in all four biological samples.
 
 ```{r warning=FALSE, message=FALSE, eval=FALSE}
 library(TEKRABber)

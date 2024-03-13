@@ -1,6 +1,10 @@
 # Create network using highly confident TE:KRAB-ZNF
 
-![](/figures/c1_335_hm_network.png){width="457"}
+In this script, we draw the cluster 1 and cluster 2 network in human. We also highlight the young pair of TE:KRAB-ZNF.
+
+![](/figures/c1_335_hm_coef_network.png)
+
+![](/figures/c1_335_hm_age_network.png)
 
 ```{r eval=FALSE}
 library(dplyr)
@@ -11,7 +15,7 @@ library(netZooR)
 Load data
 
 ```{r eval=FALSE}
-kznf_age <- read.csv("../data/kznf_bucket.csv")
+kznf_age <- read.csv("../tables/kznf_bucket.csv")
 hm_c1 <- read.csv("../tables/hsC1_corr_sig.csv")
 hm_c2 <- read.csv("../tables/hsC2_corr_sig.csv")
 
@@ -40,29 +44,51 @@ hm_c1_sig %>% filter(coef>0) %>% distinct(teName) %>% nrow() #132 in positive
 hm_c1_sig %>% filter(coef<0) %>% distinct(teName) %>% nrow() #53 in negative
 
 #3. the age of these KRAB-ZNFs
-pos_kznf <- hm_c1_sig %>% 
+pos_kznf_c1 <- hm_c1_sig %>% 
     filter(coef>0) %>% 
     count(geneName, name = "link") %>%
     mutate(coef="positive") %>%
     left_join(kznf_age[,c(2,6)], join_by(geneName == external_gene_name))
 
-neg_kznf <- hm_c1_sig %>%
+pos_te_c1 <- hm_c1_sig %>%
+    filter(coef>0) %>%
+    count(teName, name = "link") %>%
+    mutate(coef="positive") %>%
+    mutate(age = ifelse(teName %in% te_infer$NM, "young", "old"))
+
+neg_kznf_c1 <- hm_c1_sig %>%
     filter(coef<0) %>%
     count(geneName, name = "link") %>%
     mutate(coef="negative") %>%
     left_join(kznf_age[,c(2,6)], join_by(geneName == external_gene_name))
 
-intersect(pos_kznf$geneName, neg_kznf$geneName) # there are 16 of them have both positive and negative correlation
+neg_te_c1 <- hm_c1_sig %>%
+    filter(coef<0) %>%
+    count(teName, name = "link") %>%
+    mutate(coef="negative") %>%
+    mutate(age = ifelse(teName %in% te_infer$NM, "young", "old"))
 
-df_kznf_merge <- rbind(pos_kznf, neg_kznf)
+intersect(pos_kznf_c1$geneName, neg_kznf_c1$geneName) # there are 16 of them have both positive and negative correlation
+
+df_kznf_merge <- rbind(pos_kznf_c1, neg_kznf_c1)
 write.csv(df_kznf_merge, file="../tables/c1_Hm_335_linkCount.csv", row.names=FALSE)
+
+df_te_merge <- rbind(pos_te_c1, neg_te_c1)
+write.csv(df_te_merge, file="../tables/c1_Hm_335_te_linkCount.csv", row.names=FALSE)
 
 c1.node <- data.frame(
     id=c(unique(hm_c1_sig$geneName), unique(hm_c1_sig$teName))
 )
 
+# add age information
+y_kznf <- kznf_infer %>% filter(age=="young")
 c1.link <- hm_c1_sig[,c(1,2,3)]
-colnames(c1.link) <- c("source", "target", "coefficnet")
+c1.link <- c1.link %>%
+    mutate(age = 
+               ifelse(geneName %in% y_kznf$external_gene_name & 
+                          teName %in% te_infer$NM, "young", "old"))
+
+colnames(c1.link) <- c("source", "target", "coefficnet", "age")
 
 createNetworkFromDataFrames(c1.node, c1.link)
 ```

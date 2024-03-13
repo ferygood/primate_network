@@ -1,5 +1,11 @@
 # Compare the count of correlation in NHPs
 
+In this script, we first calculate how many correlations in other NHPs in cluster 1 and cluster 2. Next, we use upsetplot to see how much is the overlapped.
+
+![](/figures/upset_plot_c1.png){width="625"}
+
+![](/figures/upset_plot_c2.png){width="626"}
+
 ```{r eval=FALSE}
 library(dplyr)
 library(twice)

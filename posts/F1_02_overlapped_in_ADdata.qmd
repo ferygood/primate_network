@@ -1,5 +1,7 @@
 # Explore human temporal cortex and cerebellum data in control sample
 
+In this script, we get the information Mayo data has overlapped with ChIP-exo with 59 pairs in temporal cortex and 91 cerebellum.
+
 ```{r eval=FALSE}
 library(dplyr)
 
@@ -36,4 +38,3 @@ print(tcx_exo) # 59
 print(paste0("cerebellum is overlapped with ChIP-exo in: "))
 print(cbe_exo) # 91
 ```
-
