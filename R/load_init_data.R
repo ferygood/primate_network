@@ -1,5 +1,6 @@
 # 1. primate brain result
-read_rds_files("data/results_rdata")
+# read_rds_files("data/results_rdata")
+load("data/primateBrainData.RData")
 
 # 2. mayo RNA-seq
 load("data/mayoTEKRABber_balance.RData")

@@ -1,16 +1,26 @@
 # Proportion of young TE:KRAB-ZNF in human sample
 
+![](/figures/hm_specific_young_link_barplot.jpg){width="607"}
+
+![](/figures/ZNF441_AluYc.jpg){width="502"}
+
+![](/figures/hmpt_c1_de_corr_scatterplot.jpg){width="598"}
+
+![](/figures/znf337_L1M4c.jpg){width="546"}
+
 In this script, we try to see in the total 335 TE:KRAB-ZNF, how many of them are young TE:KRAB-ZNF
 
-Prepare the set of cluster 1 and cluster 2. 
+Prepare the set of cluster 1 and cluster 2.
+
 ```{r eval=FALSE}
 library(ggplot2)
+library(cowplot)
+library(dplyr)
 ```
-
 
 ```{r eval=FALSE}
 # import age annotation
-young_kznf <- kznf_age %>%
+young_kznf <- kznf_infer %>%
     filter(age=="young")
 
 # prepare human data
@@ -23,13 +33,13 @@ hm_c2 <- read.csv("../tables/hsC2_corr_sig.csv")
 # filter only high confidence pair of TE:KRAB-ZNF from ChIP-exo and add age info
 hm_c1_select <- hm_c1 %>% filter(pair %in% c1_list$x) %>%
     mutate(age = ifelse(
-        geneName %in% young_kznf$external_gene_name & teName %in% te_infer$NM,
+        geneName %in% young_kznf$external_gene_name | teName %in% te_infer$NM,
         "young",
         "others"
     ))
 hm_c2_select <- hm_c2 %>% filter(pair %in% c2_list$x) %>%
     mutate(age = ifelse(
-        geneName %in% young_kznf$external_gene_name & teName %in% te_infer$NM,
+        geneName %in% young_kznf$external_gene_name | teName %in% te_infer$NM,
         "young",
         "others"
     ))
@@ -47,6 +57,7 @@ c1c2_NHPs <- list(
 )
 
 save(c1c2_NHPs, file="../data/c1c2_NHPs.RData")
+#load("data/c1c2_NHPs.RData")
 
 # create a full intersect of TE:KRAB-ZNF from NHPs
 nhp_c1 <- unique(
@@ -66,6 +77,7 @@ hm_c2_filter <- hm_c2_select %>%
 ```
 
 Then we create a dataframe to draw radar plot.
+
 ```{r eval=FALSE}
 # c1 young
 hm_c1_select %>% filter(age=="young") %>% nrow()
@@ -81,7 +93,7 @@ hm_c2_filter %>% filter(age=="young") %>% nrow()
 
 
 df_rad <- data.frame(
-    count = c(52, 41, 4, 4),
+    count = c(171, 141, 20, 19),
     cluster = c("I", "I", "II", "II"),
     young = c("all", "hm-specific", "all", "hm-specific")
 )
@@ -95,9 +107,163 @@ ggsave(g_young, file="../figures/hm_specific_young_link_barplot.jpg", width=4, h
 ```
 
 Next, we try to plot one-to-one example to plot example of TE:KRAB-ZNF
-```{r eval=FALSE}
-c1c2_overlap <- hm_c2_filter %>% filter(age=="young")
 
+```{r eval=FALSE}
+#plot example, znf441 and AluYc
+hmExp_tpm <- readRDS("../data/hmExp_tpm.rds")
+hmc1_gene <- hmExp_tpm$c1_tpm$gene
+hmc1_te <- hmExp_tpm$c1_tpm$te
+
+znf441 <- log2(t(hmc1_gene["ZNF441",]))
+AluYc <- log2(t(hmc1_te["AluYc",]))
+df_znf441_aluyc <- data.frame(
+    ZNF441 = znf441,
+    AluYc = AluYc
+)
+
+g_znf441_aluyc <- ggplot(df_znf441_aluyc, aes(ZNF441, AluYc)) +
+    geom_point(color="black", fill='#ffe599', shape=21, size=3) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue") + 
+    theme_bw() +
+    annotate("text", x = 23, 
+             y = 30.3, 
+             label = "R = -0.83", color = "blue") 
+
+ggsave(g_znf441_aluyc, file="../figures/ZNF441_AluYc.jpg", width=4, height=4)
 ```
 
+The next one is to see if differentially expressed TEs has lower expression levels comparing to others.
 
+```{r}
+hmc1_te_mean <- hmc1_te %>%
+    rowwise() %>%
+    mutate(mean_exp = log2(mean(c_across(everything()), na.rm = TRUE))) %>%
+    select(41)
+
+hmc1_te_mean <- hmc1_te_mean %>%
+    data.frame() %>%
+    mutate(name = rownames(hmc1_te))
+
+# DE info
+HmPtC1 <- readRDS("~/Desktop/ferygood_github/primate_network/data/HmPtC1.rds")
+df_HmPtC1 <- data.frame(HmPtC1$DEobject$te_res)
+df_HmPtC1_process <- df_HmPtC1 %>%
+    mutate(name = rownames(df_HmPtC1)) %>%
+    select(c(6, 2, 5))
+
+# corrleation info
+corr_list <- unique(hm_c1_select$teName)
+
+# combine expression, DE, and correlation result
+df_combine <- hmc1_te_mean %>%
+    left_join(df_HmPtC1_process, by = c("name" = "name")) %>%
+    mutate(corr = ifelse(name %in% corr_list, "corr", "no")) %>%
+    mutate(group = ifelse(
+        padj<=0.05 & corr=="corr" & abs(log2FoldChange)>=1.5,
+        "select", "no"
+    ))
+
+# Set colors
+colors <- c("select" = "orange", "no" = "grey")
+
+# Plot point plot with vertical dash lines
+g_corr_de <- ggplot(df_combine, aes(log2FoldChange, mean_exp, fill = group)) +
+    geom_point(shape=21, size=2) +
+    geom_vline(xintercept = c(-1.5, 1.5), linetype = "dashed", color = "blue") +
+    scale_fill_manual(values = colors) + 
+    theme_bw()
+
+ggsave(g_corr_de, file="../figures/hmpt_c1_de_corr_scatterplot.jpg", width=6, height=4)
+```
+
+Then, we try to discovery if there is a opposite correlation happen in human and chimpanzee. From previous result, we find there are 9 TEs which are DE comparing human to chimpanzee: AluYa5, AluYd8, AluYg6, L1HS, L1M4b, L1M4c, L1MC4a, LTR1D and LTR9.
+
+```{r}
+hmpt_de_gene <- HmPtC1$DEobject$gene_res %>% 
+    data.frame() %>%
+    filter(padj<0.05 & abs(log2FoldChange)>=1.5) %>%
+    filter(rownames(.) %in% kznf_infer$external_gene_name) #53
+
+hmpt_de_te <- HmPtC1$DEobject$te_res %>%
+    data.frame() %>%
+    filter(padj<0.05 & abs(log2FoldChange)>=1.5) #53
+
+# 335 list
+hmc1_335 <- read.csv("../tables/c1_confirm_correlation.csv")
+hmc1_sig <- read.csv("../tables/hsC1_corr_sig.csv")
+hmc1_sig_filter <- hmc1_sig %>% filter(pair %in% hmc1_335$x)
+
+# DE TE list
+hmc1_sig_filter_de <- hmc1_sig_filter %>%
+    filter(geneName %in% rownames(hmpt_de_gene) &
+               teName %in% rownames(hmpt_de_te))  # only one L1M4c:ZNF337
+
+# chimp correlation
+ptc1_corr <- HmPtC1$corrCompare
+ptc1_corr_select <- ptc1_corr %>%
+    filter(geneName=="ZNF337" & teName=="L1M4c")
+
+# draw a combine scatter plot
+hmc1_znf337 <- HmPtC1$DEobject$geneCorrInputRef %>%
+    filter(rownames(.)=="ZNF337")
+hmc1_l1m4c <- HmPtC1$DEobject$teCorrInputRef %>%
+    filter(rownames(.)=="L1M4c")
+
+ptc1_znf337 <- HmPtC1$DEobject$geneCorrInputCompare %>%
+    filter(rownames(.)=="ZNF337")
+ptc1_l1m4c <- HmPtC1$DEobject$teCorrInputCompare %>%
+    filter(rownames(.)=="L1M4c")
+
+df_exp_combine <- data.frame(
+    ZNF337 = unlist(c(hmc1_znf337[1,], ptc1_znf337[1,])),
+    L1M4c = unlist(c(hmc1_l1m4c[1,], ptc1_l1m4c[1,])),
+    species = c(rep("human", 40), rep("chimp", 30))
+)
+
+rownames(df_exp_combine) <- 1:nrow(df_exp_combine)
+df_exp_combine$species <- factor(df_exp_combine$species,
+                                 levels=c("human", "chimp"))
+df_exp_combine$ZNF337 <- log2(df_exp_combine$ZNF337)
+df_exp_combine$L1M4c <- log2(df_exp_combine$L1M4c)
+```
+
+```{r}
+# Plot scatter plot
+scatter_plot <- ggplot(df_exp_combine, 
+                       aes(x = ZNF337, y = L1M4c, fill = species)) +
+  geom_point(size=3, shape=21, color="black") +
+  scale_fill_manual(values = c("red", "blue")) +
+  labs(x = "ZNF337", y = "L1M4c") +
+  theme_bw()
+
+# Plot violin plot for ZNF337
+violin_znf <- ggplot(df_exp_combine, 
+                     aes(x = species, y = ZNF337, fill = species)) +
+  geom_violin(width=1) +
+  geom_boxplot(width=0.1, color="white") +
+  scale_fill_manual(values = c("red", "blue")) +
+  coord_flip() +
+  labs(y = "ZNF337", x = "") +
+  theme_classic()
+
+# Plot violin plot for L1M4c
+violin_l1m4c <- ggplot(df_exp_combine, 
+                       aes(x = species, y = L1M4c, fill = species)) +
+  geom_violin(width=1) +
+  geom_boxplot(width = 0.1, color="white") +
+  scale_fill_manual(values = c("red", "blue")) +
+  labs(y = "L1M4c", x = "") +
+  theme_classic()
+
+# Arrange plots
+arrange_znf337_l1m4c <- plot_grid(
+    violin_znf + theme(legend.position = "none"),
+    c(),
+    scatter_plot + theme(legend.position = "none"),
+    violin_l1m4c + theme(legend.position = "none"),
+    ncol = 2, rel_widths = c(1, 1), 
+    align = "v")
+
+ggsave(arrange_znf337_l1m4c, 
+       file="../figures/znf337_L1M4c.jpg", width=6, height=4)
+```

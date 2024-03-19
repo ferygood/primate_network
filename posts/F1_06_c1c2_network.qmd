@@ -85,7 +85,7 @@ y_kznf <- kznf_infer %>% filter(age=="young")
 c1.link <- hm_c1_sig[,c(1,2,3)]
 c1.link <- c1.link %>%
     mutate(age = 
-               ifelse(geneName %in% y_kznf$external_gene_name & 
+               ifelse(geneName %in% y_kznf$external_gene_name | 
                           teName %in% te_infer$NM, "young", "old"))
 
 colnames(c1.link) <- c("source", "target", "coefficnet", "age")
