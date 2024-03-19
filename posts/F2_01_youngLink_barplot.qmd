@@ -1,0 +1,103 @@
+# Proportion of young TE:KRAB-ZNF in human sample
+
+In this script, we try to see in the total 335 TE:KRAB-ZNF, how many of them are young TE:KRAB-ZNF
+
+Prepare the set of cluster 1 and cluster 2. 
+```{r eval=FALSE}
+library(ggplot2)
+```
+
+
+```{r eval=FALSE}
+# import age annotation
+young_kznf <- kznf_age %>%
+    filter(age=="young")
+
+# prepare human data
+c1_list <- read.csv("../tables/c1_confirm_correlation.csv") #335
+c2_list <- read.csv("../tables/c2_confirm_correlation.csv") #64
+
+hm_c1 <- read.csv("../tables/hsC1_corr_sig.csv")
+hm_c2 <- read.csv("../tables/hsC2_corr_sig.csv")
+
+# filter only high confidence pair of TE:KRAB-ZNF from ChIP-exo and add age info
+hm_c1_select <- hm_c1 %>% filter(pair %in% c1_list$x) %>%
+    mutate(age = ifelse(
+        geneName %in% young_kznf$external_gene_name & teName %in% te_infer$NM,
+        "young",
+        "others"
+    ))
+hm_c2_select <- hm_c2 %>% filter(pair %in% c2_list$x) %>%
+    mutate(age = ifelse(
+        geneName %in% young_kznf$external_gene_name & teName %in% te_infer$NM,
+        "young",
+        "others"
+    ))
+
+# prepare NHP data
+# here we get the variable from the outputs from
+# F1_05_amount_correlation_NHPs.qmd
+c1c2_NHPs <- list(
+    "pt_c1" = pt_corr_c1,
+    "pt_c2" = pt_corr_c2,
+    "pp_c1" = pp_corr_c1,
+    "pp_c2" = pp_corr_c2,
+    "mm_c1" = mm_corr_c1,
+    "mm_c2" = mm_corr_c2
+)
+
+save(c1c2_NHPs, file="../data/c1c2_NHPs.RData")
+
+# create a full intersect of TE:KRAB-ZNF from NHPs
+nhp_c1 <- unique(
+    c(c1c2_NHPs$pt_c1$pair, c1c2_NHPs$pp_c1$pair, c1c2_NHPs$mm_c1$pair))
+
+nhp_c2 <- unique(
+    c(c1c2_NHPs$pt_c2$pair, c1c2_NHPs$pp_c2$pair, c1c2_NHPs$mm_c2$pair)
+)
+
+
+# filter out the pair that can be detected from NHPs -> human specific
+hm_c1_filter <- hm_c1_select %>%
+    filter(!pair %in% nhp_c1)
+
+hm_c2_filter <- hm_c2_select %>%
+    filter(!pair %in% nhp_c2)
+```
+
+Then we create a dataframe to draw radar plot.
+```{r eval=FALSE}
+# c1 young
+hm_c1_select %>% filter(age=="young") %>% nrow()
+
+# c1 hm-specific young
+hm_c1_filter %>% filter(age=="young") %>% nrow()
+
+# c2 young
+hm_c2_select %>% filter(age=="young") %>% nrow()
+
+# c2 hm-specific young
+hm_c2_filter %>% filter(age=="young") %>% nrow()
+
+
+df_rad <- data.frame(
+    count = c(52, 41, 4, 4),
+    cluster = c("I", "I", "II", "II"),
+    young = c("all", "hm-specific", "all", "hm-specific")
+)
+
+g_young <- ggplot(df_rad, aes(x = cluster, y=count, fill=young)) +
+    geom_col(position = "dodge2") +
+    scale_fill_manual(values = c("#eab57e", "#ffe599")) +
+    theme_bw()
+
+ggsave(g_young, file="../figures/hm_specific_young_link_barplot.jpg", width=4, height=4)
+```
+
+Next, we try to plot one-to-one example to plot example of TE:KRAB-ZNF
+```{r eval=FALSE}
+c1c2_overlap <- hm_c2_filter %>% filter(age=="young")
+
+```
+
+
