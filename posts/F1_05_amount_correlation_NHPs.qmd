@@ -79,10 +79,10 @@ convert_tpm <- function(dfGene, dfTE){
 corr_cluster <- function(tpm_obj, cluster_id){
     
     geneTable <- tpm_obj$geneTable
-    geneTable_cluster <- geneTable[colnames(geneTable) %in% cluster_id$Run, ]
+    geneTable_cluster <- geneTable[,colnames(geneTable) %in% cluster_id$Run]
     
     teTable <- tpm_obj$teTable
-    teTable_cluster <- teTable[colnames(teTable) %in% cluster_id$Run, ]
+    teTable_cluster <- teTable[,colnames(teTable) %in% cluster_id$Run]
     
     df_corr <- corrOrthologTE(
         geneInput = geneTable_cluster,
@@ -120,17 +120,19 @@ mm_corr_c2 <- corr_cluster(mm_obj, c2_mm)
 
 ```
 
-| sample (cluster1) | -/+/all        | unique KRAB-ZNFs | unique TEs |
-|-------------------|----------------|------------------|------------|
-| chimpanzee        | 933/954/1887   | 92               | 364        |
-| bonobo            | 1093/1438/2531 | 65               | 350        |
-| macaque           | 408/570/978    | 75               | 351        |
+Select significant results with adjusted pvalue \< 0.05
 
-| sample (cluster2) | -/+/all       | unique KRAB-ZNFs | unique TEs |
-|-------------------|---------------|------------------|------------|
-| chimpanzee        | 601/435/1036  | 74               | 293        |
-| bonobo            | 302/1332/1634 | 63               | 285        |
-| macaque           | 508/380/888   | 69               | 303        |
+| sample (cluster1) | -/+/all           | unique KRAB-ZNFs | unique TEs  |
+|-------------------|-------------------|------------------|-------------|
+| chimpanzee        | 1012/870/1882     | 177 (292)        | 470 (1167)  |
+| bonobo            | 13864/22941/36805 | 213 (216)        | 1094 (1137) |
+| macaque           | 75/190/265        | 76 (245)         | 139 (1170)  |
+
+| sample (cluster2) | -/+/all          | unique KRAB-ZNFs | unique TEs |
+|-------------------|------------------|------------------|------------|
+| chimpanzee        | 1291/2292/3583   | 226              | 648        |
+| bonobo            | 9875/12861/22736 | 202              | 1029       |
+| macaque           | 151/521/672      | 87               | 379        |
 
 Compare overlapped with human data
 
@@ -140,9 +142,9 @@ hm_c1 <- read.csv("../tables/c1_confirm_correlation.csv")
 hm_c2 <- read.csv("../tables/c2_confirm_correlation.csv")
 
 # cluster 1
-pt_c1_filter <- pt_corr_c1 %>% filter(pair %in% hm_c1$x)
-pp_c1_filter <- pp_corr_c1 %>% filter(pair %in% hm_c1$x)
-mm_c1_filter <- mm_corr_c1 %>% filter(pair %in% hm_c1$x)
+pt_c1_filter <- pt_corr_c1 %>% filter(pvalue<0.05 & pair %in% hm_c1$x)
+pp_c1_filter <- pp_corr_c1 %>% filter(pvalue<0.05 & pair %in% hm_c1$x)
+mm_c1_filter <- mm_corr_c1 %>% filter(pvalue<0.05 & pair %in% hm_c1$x)
 
 lt_c1 <- list(
     human = hm_c1$x, chimp = pt_c1_filter$pair, 
@@ -157,9 +159,9 @@ print(u_c1)
 dev.off()
 
 # cluster 2
-pt_c2_filter <- pt_corr_c2 %>% filter(pair %in% hm_c2$x )
-pp_c2_filter <- pp_corr_c2 %>% filter(pair %in% hm_c2$x)
-mm_c2_filter <- mm_corr_c2 %>% filter(pair %in% hm_c2$x)
+pt_c2_filter <- pt_corr_c2 %>% filter(pvalue<0.05 & pair %in% hm_c2$x)
+pp_c2_filter <- pp_corr_c2 %>% filter(pvalue<0.05 & pair %in% hm_c2$x)
+mm_c2_filter <- mm_corr_c2 %>% filter(pvalue<0.05 & pair %in% hm_c2$x)
 
 lt_c2 <- list(
     human = hm_c2$x, chimp = pt_c2_filter$pair, 

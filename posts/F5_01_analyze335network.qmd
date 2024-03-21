@@ -1,0 +1,28 @@
+# Compare 335 links with other NHPs.
+
+```{r}
+# load packages
+library(dplyr)
+```
+
+```{r}
+# load 335 links
+c1_335 <- read.csv("../tables/c1_confirm_correlation.csv")
+
+# load correlation tables
+HmC1 <- read.csv("../tables/hsC1_corr_sig.csv")
+HmC1 <- HmC1 %>% 
+    filter(pair %in% c1_335$x)
+
+# load NHP result
+PtC1 <- c1c2_NHPs$pt_c1
+PpC1 <- c1c2_NHPs$pp_c1
+MmC1 <- c1c2_NHPs$mm_c1
+```
+
+Analyze Chimpanzee data first
+
+```{r}
+Pt_overlap <- PtC1 %>% filter(pair %in% c1_335$x)
+hm_only_toPt <- setdiff(c1_335$x, Pt_overlap$pair)
+```

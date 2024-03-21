@@ -60,20 +60,23 @@ save(c1c2_NHPs, file="../data/c1c2_NHPs.RData")
 #load("data/c1c2_NHPs.RData")
 
 # create a full intersect of TE:KRAB-ZNF from NHPs
+pt_c1_pair <- c1c2_NHPs$pt_c1 %>% filter(padj<0.05) %>% select(pair)
+pp_c1_pair <- c1c2_NHPs$pp_c1 %>% filter(padj<0.05) %>% select(pair)
+mm_c1_pair <- c1c2_NHPs$mm_c1 %>% filter(padj<0.05) %>% select(pair)
 nhp_c1 <- unique(
-    c(c1c2_NHPs$pt_c1$pair, c1c2_NHPs$pp_c1$pair, c1c2_NHPs$mm_c1$pair))
+    c(pt_c1_pair$pair, pp_c1_pair$pair, mm_c1_pair$pair))
 
+pt_c2_pair <- c1c2_NHPs$pt_c2 %>% filter(padj<0.05) %>% select(pair)
+pp_c2_pair <- c1c2_NHPs$pp_c2 %>% filter(padj<0.05) %>% select(pair)
+mm_c2_pair <- c1c2_NHPs$mm_c2 %>% filter(padj<0.05) %>% select(pair)
 nhp_c2 <- unique(
-    c(c1c2_NHPs$pt_c2$pair, c1c2_NHPs$pp_c2$pair, c1c2_NHPs$mm_c2$pair)
-)
+    c(pt_c2_pair$pair, pp_c2_pair$pair, mm_c2_pair$pair))
 
 
 # filter out the pair that can be detected from NHPs -> human specific
-hm_c1_filter <- hm_c1_select %>%
-    filter(!pair %in% nhp_c1)
+hm_c1_filter <- hm_c1_select %>% filter(!pair %in% nhp_c1)
 
-hm_c2_filter <- hm_c2_select %>%
-    filter(!pair %in% nhp_c2)
+hm_c2_filter <- hm_c2_select %>% filter(!pair %in% nhp_c2)
 ```
 
 Then we create a dataframe to draw radar plot.
@@ -93,7 +96,7 @@ hm_c2_filter %>% filter(age=="young") %>% nrow()
 
 
 df_rad <- data.frame(
-    count = c(171, 141, 20, 19),
+    count = c(171, 155, 20, 19),
     cluster = c("I", "I", "II", "II"),
     young = c("all", "hm-specific", "all", "hm-specific")
 )
@@ -145,7 +148,7 @@ hmc1_te_mean <- hmc1_te_mean %>%
     mutate(name = rownames(hmc1_te))
 
 # DE info
-HmPtC1 <- readRDS("~/Desktop/ferygood_github/primate_network/data/HmPtC1.rds")
+HmPtC1 <- readRDS("../data/HmPtC1.rds")
 df_HmPtC1 <- data.frame(HmPtC1$DEobject$te_res)
 df_HmPtC1_process <- df_HmPtC1 %>%
     mutate(name = rownames(df_HmPtC1)) %>%
