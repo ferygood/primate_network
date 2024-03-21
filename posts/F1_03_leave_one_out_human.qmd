@@ -84,7 +84,8 @@ corr_human <- function(human_id){
     # let us assume the cutoff will be absolute cofficient larger than 0.3 and 
     # p-adj less than 0.01
     df_corr_sig <- df_corr %>%
-        filter(padj<0.01 & abs(coef)>=0.4) %>%
+        #filter(padj<0.0 & abs(coef)>=0.4) %>%
+        filter(padj<0.05) %>%
         mutate(pair = paste0(teName, ":", geneName))
     
     neg_count <- df_corr_sig %>% filter(coef<0) %>% nrow()

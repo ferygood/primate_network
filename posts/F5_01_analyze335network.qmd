@@ -3,6 +3,7 @@
 ```{r}
 # load packages
 library(dplyr)
+library(RCy3)
 ```
 
 ```{r}
@@ -15,14 +16,78 @@ HmC1 <- HmC1 %>%
     filter(pair %in% c1_335$x)
 
 # load NHP result
-PtC1 <- c1c2_NHPs$pt_c1
-PpC1 <- c1c2_NHPs$pp_c1
-MmC1 <- c1c2_NHPs$mm_c1
+PtC1 <- c1c2_NHPs$pt_c1 %>% filter(pvalue<0.05)
+PpC1 <- c1c2_NHPs$pp_c1 %>% filter(pvalue<0.05)
+MmC1 <- c1c2_NHPs$mm_c1 %>% filter(pvalue<0.05)
+
+# then add age information to the table
+young_kznf <- kznf_infer %>% filter(age=="young")
+young_te <- te_infer$NM
+
+HmC1_age <- HmC1 %>%
+    mutate(age=ifelse(geneName %in% young_kznf$external_gene_name |
+                           teName %in% young_te, "young", "old"))
 ```
 
-Analyze Chimpanzee data first
+Analyze different direction and add evolutionary age information:
 
-```{r}
-Pt_overlap <- PtC1 %>% filter(pair %in% c1_335$x)
-hm_only_toPt <- setdiff(c1_335$x, Pt_overlap$pair)
+```{r eval=FALSE}
+nhp_c1 <- unique(c(PtC1$pair, PpC1$pair, MmC1$pair))
+
+Hm_diff <- HmC1_age %>%
+    filter(!pair %in% nhp_c1)
+
+Hm_Pt_diff <- HmC1_age %>%
+    inner_join(PtC1[,c(3,6)], join_by(pair==pair)) %>%
+    mutate(sign=ifelse(sign(coef.x) * sign(coef.y) <0, "opposite", "same"))
+
+Hm_Pp_diff <- HmC1_age %>%
+    inner_join(PpC1[,c(3,6)], join_by(pair==pair)) %>%
+    mutate(sign=ifelse(sign(coef.x) * sign(coef.y) <0, "opposite", "same"))
+
+Hm_Mm_diff <- HmC1_age %>%
+    inner_join(MmC1[,c(3,6)], join_by(pair==pair)) %>%
+    mutate(sign=ifelse(sign(coef.x) * sign(coef.y) <0, "opposite", "same"))
+```
+
+```{r eval=FALSE}
+# make human specific 197 link network by excluding overlap in NHPs
+c1_hm_diff_node <- data.frame(
+    id=c(unique(Hm_diff$geneName), unique(Hm_diff$teName))
+)
+
+c1_hm_diff_link <- Hm_diff %>% select(c(1,2,3,7))
+colnames(c1_hm_diff_link) <- c("source", "target", "coefficient", "age")
+
+createNetworkFromDataFrames(c1_hm_diff_node, c1_hm_diff_link)
+
+# Hm_Pt_diff
+c1_HmPt_diff_node <- data.frame(
+    id=c(unique(Hm_Pt_diff$geneName), unique(Hm_Pt_diff$teName))
+)
+
+c1_HmPt_diff_link <- Hm_Pt_diff %>% select(c(1,2,3,8,7,9))
+colnames(c1_HmPt_diff_link) <- c("source", "target", "coef_h", "coef_p", "age", "sign")
+
+createNetworkFromDataFrames(c1_HmPt_diff_node, c1_HmPt_diff_link)
+
+# Hm_Pp_diff
+c1_HmPp_diff_node <- data.frame(
+    id=c(unique(Hm_Pp_diff$geneName), unique(Hm_Pp_diff$teName))
+)
+
+c1_HmPp_diff_link <- Hm_Pp_diff %>% select(c(1,2,3,8,7,9))
+colnames(c1_HmPp_diff_link) <- c("source", "target", "coef_h", "coef_p", "age", "sign")
+
+createNetworkFromDataFrames(c1_HmPp_diff_node, c1_HmPp_diff_link)
+
+# Hm_Mm_diff
+c1_HmMm_diff_node <- data.frame(
+    id=c(unique(Hm_Mm_diff$geneName), unique(Hm_Mm_diff$teName))
+)
+
+c1_HmMm_diff_link <- Hm_Mm_diff %>% select(c(1,2,3,8,7,9))
+colnames(c1_HmMm_diff_link) <- c("source", "target", "coef_h", "coef_p", "age", "sign")
+
+createNetworkFromDataFrames(c1_HmMm_diff_node, c1_HmMm_diff_link)
 ```
