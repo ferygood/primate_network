@@ -1,0 +1,161 @@
+# AD correlation part update
+
+![](/figures/upset_plot_mayo.png){width="542"}
+
+This figure we used the same threshold (adjusted p-val \< 0.01 and absolute coefficient larger than 0.4) and all the link should be detected also in ChipExo.
+
+```{r message=FALSE}
+library(twice)
+library(dplyr)
+```
+
+Load data
+
+```{r}
+load("../data/mayoTEKRABber_balance.RData") # load mayo RNA seq result
+c1_confirm <- read.csv("../tables/c1_confirm_correlation.csv")
+c2_confirm <- read.csv("../tables/c2_confirm_correlation.csv")
+confirm_mix <- c(c1_confirm$x, c2_confirm$x)
+confirm_mix <- confirm_mix[!duplicated(confirm_mix)] # merge the confirm list
+
+chipexo <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
+chipexo_process <- chipexo %>%
+    mutate(pair=paste0(teName, ":", geneName))
+
+```
+
+Next, we first find the overlap with ChIPexo:
+
+```{r}
+tcx_control <- mayoTEKRABber$tcxControlCorr %>% 
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    filter(pair %in% chipexo_process$pair & padj<0.01 & abs(coef)>=0.4)  #59
+
+tcx_ad <- mayoTEKRABber$tcxADCorr %>% 
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    filter(pair %in% chipexo_process$pair & padj<0.01 & abs(coef)>=0.4)  #3
+
+cbe_control <- mayoTEKRABber$cbeControlCorr %>%
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    filter(pair %in% chipexo_process$pair & padj<0.01 & abs(coef)>=0.4)  #91
+
+cbe_ad <- mayoTEKRABber$cbeADCorr %>%
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    filter(pair %in% chipexo_process$pair & padj<0.01 & abs(coef)>=0.4)  #35
+```
+
+create upsetplot of mayo data
+
+```{r}
+# upsetplot for the overlap of mayo data
+# previously we use NHP to filter the data, because we have too much correlations
+# this time, we already have so much correlation
+library(ComplexHeatmap)
+lt_mayo <- list(
+    tcx_control = tcx_control$pair, 
+    tcx_AD = tcx_ad$pair,
+    cbe_control = cbe_control$pair,
+    cbe_AD = cbe_ad$pair)
+
+m_mayo <- make_comb_mat(lt_mayo)
+
+png("../figures/upset_plot_mayo.png", width=5, height=3, units="in", res=400)
+u_mayo <- UpSet(m_mayo, comb_order=order(-comb_size(m_mayo)), top_annotation=upset_top_annotation(m_mayo, add_numbers=TRUE))
+print(u_mayo)
+dev.off()
+```
+
+Try to plot the CBE 81 and TCX 55 network and calculate their modularity. These are the control specific group of correlation in adult human brain.
+
+```{r}
+# filter control specific dataframe
+cbe_control_specific <- 
+    cbe_control[!(cbe_control$pair %in% tcx_control$pair) & 
+                    !(cbe_control$pair %in% tcx_ad$pair) & 
+                    !(cbe_control$pair %in% cbe_ad$pair), ] #81
+
+tcx_control_specific <- 
+    tcx_control[!(tcx_control$pair %in% cbe_control$pair) &
+                    !(tcx_control$pair %in% tcx_ad$pair) &
+                    !(tcx_control$pair %in% cbe_ad$pair), ] #55
+
+# get differentially expressed list
+tcx_DE <- c("AluYa5", "AluYh3", "HERV1_LTRd", "LTR19A", "MER11B", "Eulor9B",
+            "HERVI-int", "HERVKC4-int", "LTR26B", "MER57E1")
+cbe_DE <- c("HERV-Fc1_LTR1", "LTR21B", "Chompy-7_Croc", "HERV-Fc1-int",
+            "MLT1-int", "MLT1J2-int", "UCON11")   
+# no overlap, we can use another analysis
+```
+
+```{r}
+library(RCy3)
+library(netZooR)
+
+# node information
+y_kznf <- kznf_infer %>%filter(age=="young")
+
+cbe.node <- data.frame(
+    id=c(unique(cbe_control_specific$geneName), unique(cbe_control_specific$teName))
+)
+
+cbe_node_pair <- cbe_control_specific[,c(2,1,4)]
+cbe_node_pair$coef <- abs(cbe_node_pair$coef)
+cbe_condor <- createCondorObject(cbe_node_pair)
+cbe_condor <- condorCluster(cbe_condor, cs.method="LEC", project=F)
+
+cbe_kznf <- cbe_condor$blue.memb
+colnames(cbe_kznf)[1] <- "id"
+cbe_te <- cbe_condor$red.memb
+colnames(cbe_te)[1] <- "id"
+cbe_com_df <- rbind(cbe_kznf, cbe_te)
+
+cbe.node <- cbe.node %>%
+    left_join(cbe_com_df, join_by(id==id))
+
+# add age information
+y_kznf <- kznf_infer %>% filter(age=="young")
+cbe.link <- cbe_control_specific[,c(1,2,4)]
+cbe.link <- cbe.link %>%
+    mutate(age = 
+               ifelse(geneName %in% y_kznf$external_gene_name | 
+                          teName %in% te_infer$NM, "young", "old"))
+
+colnames(cbe.link) <- c("source", "target", "coefficnet", "age")
+
+createNetworkFromDataFrames(cbe.node, cbe.link)
+```
+
+compare the expression and correlation between intersects
+
+```{r}
+# temporal cortex 55
+tcx.node <- data.frame(
+    id=c(unique(tcx_control_specific$geneName), unique(tcx_control_specific$teName))
+)
+
+tcx_node_pair <- tcx_control_specific[,c(2,1,4)]
+tcx_node_pair$coef <- abs(tcx_node_pair$coef)
+tcx_condor <- createCondorObject(tcx_node_pair)
+tcx_condor <- condorCluster(tcx_condor, cs.method="LEC", project=F)
+
+tcx_kznf <- tcx_condor$blue.memb
+colnames(tcx_kznf)[1] <- "id"
+tcx_te <- tcx_condor$red.memb
+colnames(tcx_te)[1] <- "id"
+tcx_com_df <- rbind(tcx_kznf, tcx_te)
+
+tcx.node <- tcx.node %>%
+    left_join(tcx_com_df, join_by(id==id))
+
+# add age information
+y_kznf <- kznf_infer %>% filter(age=="young")
+tcx.link <- tcx_control_specific[,c(1,2,4)]
+tcx.link <- tcx.link %>%
+    mutate(age = 
+               ifelse(geneName %in% y_kznf$external_gene_name | 
+                          teName %in% te_infer$NM, "young", "old"))
+
+colnames(tcx.link) <- c("source", "target", "coefficnet", "age")
+
+createNetworkFromDataFrames(tcx.node, tcx.link)
+```

@@ -237,6 +237,34 @@ df_temp_process_select <- df_temp_process %>%
     filter(abs(coef.kznf)>=0.85 & abs(coef.TE)>=0.85)
 ```
 
-```{r}
+# cluster 2
 
+```{r}
+# load 335 links
+c2_64 <- read.csv("../tables/c2_confirm_correlation.csv")
+
+# load correlation tables
+HmC2 <- read.csv("../tables/hsC2_corr_sig.csv")
+HmC2 <- HmC2 %>% 
+    filter(pair %in% c2_64$x)
+
+# load NHP result
+PtC2 <- c1c2_NHPs$pt_c2 %>% filter(pvalue<0.05)
+PpC2 <- c1c2_NHPs$pp_c2 %>% filter(pvalue<0.05)
+MmC2 <- c1c2_NHPs$mm_c2 %>% filter(pvalue<0.05)
+
+# then add age information to the table
+young_kznf <- kznf_infer %>% filter(age=="young")
+young_te <- te_infer$NM
+
+HmC2_age <- HmC2 %>%
+    mutate(age=ifelse(geneName %in% young_kznf$external_gene_name |
+                           teName %in% young_te, "young", "old"))
+
+nhp_c2 <- unique(c(PtC2$pair, PpC2$pair, MmC2$pair))
+
+Hm_diff <- HmC2_age %>%
+    filter(!pair %in% nhp_c2)
+
+write.csv(Hm_diff, file="../tables/c2_35_Hm_DiffNHP.csv", row.names=F)
 ```
