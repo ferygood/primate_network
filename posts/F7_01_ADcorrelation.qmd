@@ -4,6 +4,12 @@
 
 This figure we used the same threshold (adjusted p-val \< 0.01 and absolute coefficient larger than 0.4) and all the link should be detected also in ChipExo.
 
+![](/figures/Mayo_scatter_plot.jpg){width="565"}
+
+![](/figures/tcx_control_specific_55_module.png){width="455"}
+
+![](/figures/cbe_control_specific_85_module.png){width="513"}
+
 ```{r message=FALSE}
 library(twice)
 library(dplyr)
@@ -158,4 +164,113 @@ tcx.link <- tcx.link %>%
 colnames(tcx.link) <- c("source", "target", "coefficnet", "age")
 
 createNetworkFromDataFrames(tcx.node, tcx.link)
+```
+
+Based on the upsetplot, we try to see what happened to the same pair of TE:KRAB-ZNF in different condition group of data. First, let's see some correlation that only appear in one of the condition. For example, 81 of the cbe_control data.
+
+```{r}
+cbe_ad_raw <- mayoTEKRABber$cbeADCorr %>%
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    filter(pair %in% cbe_control_specific$pair) %>%
+    filter(abs(coef)>=0.4) %>%
+    inner_join(cbe_control_specific[,c(4,6)], join_by(pair==pair)) %>%
+    filter(coef.x * coef.y < 0)
+
+# only one overlapped opposite MER11D:ZNF611 (control: 0.715 and AD: -0.49)
+```
+
+For the same pair of cbe_control_specific (81) in AD, we found that only 26 of them have abs(coef)\>=0.4 but none of them have padj\<0.01, therefore they are exclude at the end. When compare these 26, we found only one pair MER11D:ZNF611 is opposite correlation comparing control and AD.
+
+Next, we compare the 55 tcx_control_specific:
+
+```{r}
+tcx_ad_compare <- mayoTEKRABber$tcxADCorr %>%
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    filter(pair %in% tcx_control_specific$pair) %>%
+    filter(abs(coef)>=0.4) %>% 
+    inner_join(tcx_control_specific[,c(4,6)], join_by(pair==pair)) %>%
+    filter(coef.x * coef.y > 0) #33
+        
+```
+
+Similar to cbe case, correlations have not passed padj\<0.01 in AD, however, 33 of them have the same direction (absolute coefficient larger than 0.4).
+
+Then we have 10 overlap between cbe_control and cbe_AD:
+
+```{r}
+cbe_compare_list<- intersect(cbe_control$pair, cbe_ad$pair)
+cbe_compare_df <- cbe_control %>%
+    inner_join(cbe_ad[,c(4,6)], join_by(pair==pair))
+    
+```
+
+Summary:
+
+\(1\) The direction of correlations are similar and the main difference are the significant between condition (adjusted pvalue \< 0.01).
+
+\(2\) An unique case is MER11D:ZNF611, which are positive correlated in cbe control group (0.715) but negatively correlated in cbe AD group (-0.49). MER11D:ZNF611 are not significantly correlated in temporal cortex region.
+
+```{r}
+# here we plot a scatter plot of MER11D:ZNF611
+
+library(ggplot2)
+cbe_gene_exp <- mayoTEKRABber$cbeDE$normalized_gene_counts
+cbe_te_exp <- mayoTEKRABber$cbeDE$normalized_te_counts
+
+# MER11D:ZNF611
+znf611 <- cbe_gene_exp["ZNF611", ] %>% unlist()
+mer11d <- cbe_te_exp["MER11D", ] %>% unlist()
+df_znf611_mer11d <- data.frame(
+    znf611 = znf611,
+    mer11d = mer11d,
+    group = c(rep("Control", 23), rep("AD", 22))
+)
+
+df_znf611_mer11d$group <- factor(df_znf611_mer11d$group, levels=c("Control", "AD"))
+
+g1 <- ggplot(df_znf611_mer11d, 
+             aes(x = znf611, y = mer11d, fill = group, color = group)) +
+  geom_point(size = 2, shape = 21) +
+  facet_wrap(~ group) +
+  geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
+  scale_fill_manual(values = c("#B1DEFB", "#f6b26b")) +  
+  scale_color_manual(values = c("#0b5394", "#ce7e00")) +
+    xlab("ZNF611") +
+    ylab("MER11D") +
+    ggtitle("MER11D:ZNF611 in cerebellum") +
+  theme_bw()
+# Control: R=0.715, adj-p=0.00518
+# AD: R=-0.487, adj-p=0.132
+
+
+# AluYc:ZNF519
+tcx_gene_exp <- mayoTEKRABber$tcxDE$normalized_gene_counts
+tcx_te_exp <- mayoTEKRABber$tcxDE$normalized_te_counts
+
+znf519 <- tcx_gene_exp["ZNF519",] %>% unlist()
+aluyc <- tcx_te_exp["AluYc", ] %>% unlist()
+df_znf519_aluyc <- data.frame(
+    ZNF519 = znf519,
+    AluYc = aluyc,
+    group = factor(c(rep("Control", 23), rep("AD", 24)), levels=c("Control", "AD"))
+)
+
+g2 <- ggplot(df_znf519_aluyc, 
+             aes(x = ZNF519, y = AluYc, fill = group, color = group)) +
+  geom_point(size = 2, shape = 21) +
+  facet_wrap(~ group) +
+  geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
+  scale_fill_manual(values = c("#B1DEFB", "#f6b26b")) +  
+  scale_color_manual(values = c("#0b5394", "#ce7e00")) +
+    xlab("ZNF519") +
+    ylab("AluYc") +
+    ggtitle("AluYc:ZNF519 in temporal cortex") +
+  theme_bw()
+
+# AD: R=-0.684, adj-p = 0.023
+# Control: R=-0.705, adj-p=0.00983
+
+library(ggpubr)
+g_merge <- ggarrange(g2, g1, nrow=2)
+ggsave("../figures/Mayo_scatter_plot.jpg", dpi=200, width=6, height=6)
 ```
