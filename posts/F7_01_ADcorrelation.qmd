@@ -10,6 +10,8 @@ This figure we used the same threshold (adjusted p-val \< 0.01 and absolute coef
 
 ![](/figures/cbe_control_specific_85_module.png){width="513"}
 
+![](/figures/teFamily_distribution_mayo.jpg){width="534"}
+
 ```{r message=FALSE}
 library(twice)
 library(dplyr)
@@ -273,4 +275,54 @@ g2 <- ggplot(df_znf519_aluyc,
 library(ggpubr)
 g_merge <- ggarrange(g2, g1, nrow=2)
 ggsave("../figures/Mayo_scatter_plot.jpg", dpi=200, width=6, height=6)
+```
+
+Plot the distribution of TE family:
+
+```{r}
+library(twice)
+data("hg19rmsk_info")
+te_info <- hg19rmsk_info
+te_info <- te_info %>%
+    mutate(family_id = ifelse(
+        family_id%in%c("SVA_A", "SVA_B","SVA_C","SVA_D","SVA_E", "SVA_F"), 
+        "SVAs", family_id))
+
+df_complete <- data.frame(
+    gene_id = c("LTR1A1", "LTR1A2", "HAL1M8", "LTR27D", "AluYf1", "AluYk3", "Alu"),
+    family_id = c("ERV1", "ERV1", "L1", "ERV1", "Alu", "Alu", "Alu"),
+    class_id = c("LTR", "LTR", "LINE", "LTR", "SINE", "SINE", "SINE")
+)
+
+te_info <- rbind(te_info, df_complete)
+
+cbe_control_specific_family <- cbe_control_specific %>%
+    left_join(te_info[,c(1,2)], join_by(teName==gene_id)) %>%
+    mutate(brain="cbe")
+
+tcx_control_specific_family <- tcx_control_specific %>%
+    left_join(te_info[,c(1,2)], join_by(teName==gene_id)) %>%
+    mutate(brain="tcx")
+
+df_teFamily <- rbind(cbe_control_specific_family[,c(7,8)],
+                     tcx_control_specific_family[,c(7,8)])
+
+df_teFamily_process <- df_teFamily %>%
+    group_by(family_id, brain) %>%
+    summarise(count = n())
+
+library(ggplot2)
+
+# 绘制条形图
+g3 <- ggplot(df_teFamily_process, aes(x = family_id, y = count, fill = brain)) +
+  geom_bar(stat = "identity", position = "dodge") +  
+  scale_fill_manual(values = c("tcx" = "#93c47d", "cbe" = "#d5a6bd")) +  
+  labs(x = "TE Family", y = "count", 
+       title = "TE:KRAB-ZNF in control groups") +  
+  theme_bw() +  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  guides(fill=guide_legend(title=""))
+
+ggsave(g3, file="../figures/teFamily_distribution_mayo.jpg", 
+       dpi=200, width=4, height=4)
 ```
