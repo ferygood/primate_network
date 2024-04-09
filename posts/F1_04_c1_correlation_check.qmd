@@ -17,16 +17,16 @@ library(ggplot2)
 ```
 
 ```{r eval=FALSE}
-corr_c1 <- hsC1
+corr_c1 <- read.csv("../tables/hsC1_corr_sig.csv")
 hsC1_sig <- corr_c1 %>% filter(padj<0.01) #127797
 
-corr_c2 <- hsC2
+corr_c2 <- read.csv("../tables/hsC2_corr_sig.csv")
 hsC2_sig <- corr_c2 %>% filter(padj<0.01) #49770
 ```
 
 ```{r eval=FALSE}
 # Create a vector of file names
-file_names <- paste0("../data/results_c1/gene_", 1:1000, "_vs_TE_corr.csv")
+file_names <- paste0("/group/ag_nowick/data/yao/results_c1/gene_", 1:1000, "_vs_TE_corr.csv")
 
 # Use lapply to read and filter each file
 temp_list <- lapply(file_names, function(file_name) {
@@ -45,6 +45,16 @@ percentage <- larger_count / total_values * 100
 
 print(percentage)
 
+
+# for cluster 2
+file_c2 <- paste0("/group/ag_nowick/data/yao/results_c2/gene_", 1:1000, "_vs_TE_corr.csv")
+temp_list_c2 <- lapply(file_c2, function(file_name) {
+  data <- read.csv(file_name)
+  filtered_data <- data %>% filter(padj < 0.01)
+  nrow(filtered_data)
+})
+
+temp_list_c2_unlist <- unlist(temp_list_c2)
 ```
 
 ```{r eval=FALSE}
@@ -54,7 +64,7 @@ df_bar_c1 <- data.frame(
 )
 
 df_bar_c2 <- data.frame(
-    count = temp_list_c2,
+    count = temp_list_c2_unlist,
     group = "cluster2"
 )
 
@@ -64,6 +74,8 @@ df_bar <- rbind(df_bar, c(127797, "cluster1"))
 df_bar <- rbind(df_bar, c(49770, "cluster2"))
 
 df_bar$count <- as.numeric(df_bar$count)
+
+#write.csv(df_bar, "../tables/hm_c1c2_100iter.csv", row.names=F)
 
 g_bar <- ggplot(df_bar, aes(x=group, y=count/1000, fill=group)) +
     geom_boxplot() +
@@ -150,7 +162,7 @@ ggsave(gc1, file="../figures/correlation_check_c1.jpg", dpi=400, width=4, height
 ```
 
 ```{r eval=FALSE}
-overlapped_c2 <- intersect(hsC2_sig$pair, chip_exo_pair$pair) #869
+overlapped_c2 <- intersect(hsC2_sig$pair, chip_exo_pair$pair) #399
 
 # create a dataframe, col1=count, col2=coefficient
 df_temp <- data.frame(

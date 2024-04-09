@@ -1,0 +1,64 @@
+# Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs
+
+```{r}
+library(dplyr)
+library(purrr)
+library(ggplot2)
+```
+
+Write function and iteration to get the correlation count in each species
+
+```{r}
+get_count <- function(dir_path){
+    # Create a vector of file names
+    file_names <- paste0(dir_path, 1:1000, "_vs_TE_corr.csv")
+    
+    # Use lapply to read and filter each file
+    temp_list <- lapply(file_names, function(file_name) {
+      data <- read.csv(file_name)
+      filtered_data <- data %>% filter(padj < 0.01)
+      nrow(filtered_data)
+    })
+    
+    temp_vector <- unlist(temp_list)
+    
+    temp_vector
+}
+```
+
+```{r}
+count_hm_c1 <- get_count("/group/ag_nowick/data/yao/results_c1_pt/gene_")
+count_hm_cbe <- get_count("/group/ag_nowick/data/yao/results_cbe/gene_")
+count_hm_tcx <- get_count("/group/ag_nowick/data/yao/results_tcx/gene_")
+count_pt_c1 <- get_count("/group/ag_nowick/data/yao/results_c1_pt/gene_")
+count_pt_c2 <- get_count("/group/ag_nowick/data/yao/results_c2_pt/gene_")
+
+
+
+lcount_pp <- get_count("/group/ag_nowick/yaochung/results_pp/gene_")
+count_mm <- get_count("/group/ag_nowick/yaochung/results_mm/gene_")
+print(Sys.time())
+count_hm <- get_count("/group/ag_nowick/yaochung/results_hm/gene_")
+print(Sys.time())
+```
+
+```{r}
+c1_pt <- c1c2_NHPs$pt_c1 %>% filter(padj<0.01)
+c2_pt <- 
+c1_pt_1 <- read.csv("/group/ag_nowick/data/yao/results_c1_pt/gene_1_vs_TE_corr.csv")
+```
+
+```{r}
+# Create a vector of file names
+file_names <- paste0("../data/results_c1/gene_", 1:1000, "_vs_TE_corr.csv")
+
+# Use lapply to read and filter each file
+temp_list <- lapply(file_names, function(file_name) {
+  data <- read.csv(file_name)
+  filtered_data <- data %>% filter(padj < 0.01)
+  nrow(filtered_data)
+})
+
+# Combine the results into a single vector
+temp_list_c1 <- unlist(temp_list)
+```
