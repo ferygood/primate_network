@@ -4,61 +4,114 @@
 library(dplyr)
 library(purrr)
 library(ggplot2)
+
+library(foreach)
+library(doParallel)
 ```
 
 Write function and iteration to get the correlation count in each species
 
 ```{r}
-get_count <- function(dir_path){
+get_count_parallel <- function(dir_path){
     # Create a vector of file names
     file_names <- paste0(dir_path, 1:1000, "_vs_TE_corr.csv")
     
-    # Use lapply to read and filter each file
-    temp_list <- lapply(file_names, function(file_name) {
-      data <- read.csv(file_name)
-      filtered_data <- data %>% filter(padj < 0.01)
-      nrow(filtered_data)
-    })
+    # Initialize parallel backend
+    registerDoParallel(5)
     
-    temp_vector <- unlist(temp_list)
+    # Use foreach loop for parallel processing
+    df_temp <- foreach(file_name = file_names, .combine = rbind) %dopar% {
+        data <- read.csv(file_name)
+      
+        filtered_data <- data %>% filter(padj < 0.01)
+        p_count <- filtered_data %>% filter(coef > 0) %>% nrow()
+        n_count <- filtered_data %>% filter(coef < 0) %>% nrow()
+      
+        df_add <- data.frame(
+            positive_count = p_count,
+            negative_count = n_count
+        )
+        
+        return(df_add)
+    }
     
-    temp_vector
+    # Stop parallel backend
+    stopImplicitCluster()
+    
+    return(df_temp)
 }
+
 ```
 
 ```{r}
-count_hm_c1 <- get_count("/group/ag_nowick/data/yao/results_c1_pt/gene_")
-count_hm_cbe <- get_count("/group/ag_nowick/data/yao/results_cbe/gene_")
-count_hm_tcx <- get_count("/group/ag_nowick/data/yao/results_tcx/gene_")
-count_pt_c1 <- get_count("/group/ag_nowick/data/yao/results_c1_pt/gene_")
-count_pt_c2 <- get_count("/group/ag_nowick/data/yao/results_c2_pt/gene_")
+count_hm_c1 <- get_count_parallel("/group/ag_nowick/data/yao/results_c1/gene_")
+count_hm_c2 <- get_count_parallel("/group/ag_nowick/data/yao/results_c2/gene_")
 
+count_pt_c1 <- get_count_parallel("/group/ag_nowick/data/yao/results_c1_pt/gene_")
+count_pt_c2 <- get_count_parallel("/group/ag_nowick/data/yao/results_c2_pt/gene_")
 
-
-lcount_pp <- get_count("/group/ag_nowick/yaochung/results_pp/gene_")
-count_mm <- get_count("/group/ag_nowick/yaochung/results_mm/gene_")
 print(Sys.time())
-count_hm <- get_count("/group/ag_nowick/yaochung/results_hm/gene_")
+count_hm_cbe <- get_count_parallel("/group/ag_nowick/data/yao/results_cbe/gene_")
+count_hm_tcx <- get_count_parallel("/group/ag_nowick/data/yao/results_tcx/gene_")
 print(Sys.time())
+
+count_pp_c1 <- get_count_parallel("/group/ag_nowick/data/yao/results_c1_pp/gene_")
+count_pp_c2 <- get_count_parallel("/group/ag_nowick/data/yao/results_c2_pp/gene_")
+
+count_mm_c1 <- get_count_parallel("/group/ag_nowick/data/yao/results_c1_mm/gene_")
+count_mm_c2 <- get_count_parallel("/group/ag_nowick/data/yao/results_c2_mm/gene_")
+
+
 ```
 
 ```{r}
-c1_pt <- c1c2_NHPs$pt_c1 %>% filter(padj<0.01)
-c2_pt <- 
-c1_pt_1 <- read.csv("/group/ag_nowick/data/yao/results_c1_pt/gene_1_vs_TE_corr.csv")
+count_hm_c1_p <- count_hm_c1 %>% mutate(label="hm_cluster1")
+count_hm_c2_p <- count_hm_c2 %>% mutate(label="hm_cluster2")
+count_pt_c1_p <- count_pt_c1 %>% mutate(label="pt_cluster1")
+count_pt_c2_p <- count_pt_c2 %>% mutate(label="pt_cluster2")
+count_pp_c1_p <- count_pp_c1 %>% mutate(label="pp_cluster1")
+count_pp_c2_p <- count_pp_c2 %>% mutate(label="pp_cluster2")
+count_mm_c1_p <- count_mm_c1 %>% mutate(label="mm_cluster1")
+count_mm_c2_p <- count_mm_c2 %>% mutate(label="mm_cluster2")
+count_hm_cbe_p <- count_hm_cbe %>% mutate(label="cbe_control")
+count_hm_tcx_p <- count_hm_tcx %>% mutate(label="tcx_control")
+
+df_combine <- rbind(count_hm_c1_p, count_hm_c2_p, count_hm_cbe_p, count_hm_tcx_p,
+                    count_mm_c1_p, count_mm_c2_p, count_pt_c1_p, count_pt_c2_p,
+                    count_pp_c1_p, count_pp_c2_p)
+
+write.csv(df_combine, file="../tables/iterationAll_tables.csv", row.names=F)
 ```
 
 ```{r}
-# Create a vector of file names
-file_names <- paste0("../data/results_c1/gene_", 1:1000, "_vs_TE_corr.csv")
+# negative count
+df_neg_tekrabznf <- data.frame(
+    negative_count = c(26810, 11475),
+    label = c("hm_cluster1", "hm_cluster2")
+)
 
-# Use lapply to read and filter each file
-temp_list <- lapply(file_names, function(file_name) {
-  data <- read.csv(file_name)
-  filtered_data <- data %>% filter(padj < 0.01)
-  nrow(filtered_data)
-})
+df_neg_tekrabznf$negative_count <- log(df_neg_tekrabznf$negative_count)
 
-# Combine the results into a single vector
-temp_list_c1 <- unlist(temp_list)
+ggplot(data=df_combine, aes(x=label, y=log(negative_count))) +
+    geom_boxplot(fill="lightblue", color='blue') +
+    geom_point(data = df_neg_tekrabznf,
+             aes(x = label, y = negative_count), color = "red", size = 2) +
+    theme_bw()
+```
+
+```{r}
+# positive count
+df_pos_tekrabznf <- data.frame(
+    positive_count = c(100987, 38295, 5793, 6185, 46759, 20070, 2273, 6253),
+    label = c("hm_cluster1", "hm_cluster2", "pt_cluster1", "pt_cluster2",
+              "pp_cluster1", "pp_cluster2", "mm_cluster1", "mm_cluster2")
+)
+
+df_pos_tekrabznf$positive_count <- log(df_pos_tekrabznf$positive_count)
+
+ggplot(data=df_combine, aes(x=label, y=log(positive_count))) +
+    geom_boxplot(fill="pink", color='purple') +
+    geom_point(data = df_pos_tekrabznf,
+             aes(x = label, y = positive_count), color = "red", size = 3) +
+    theme_bw()
 ```
