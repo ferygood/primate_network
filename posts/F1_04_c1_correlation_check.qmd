@@ -94,7 +94,7 @@ ggsave(g_bar, file="../figures/barplot_c1c2_check.jpg", dpi=400, width=4, height
 ```
 
 ```{r eval=FALSE}
-chip_exo <- read.csv("../../randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv")
+chip_exo <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
 chip_exo_pair <- chip_exo %>%
     mutate(pair = paste0(teName, ":", geneName))
 
@@ -154,6 +154,9 @@ gc1 <- ggplot(df_merge, aes(x=coefficient, y=count, color=group)) +
     ylab("overlapped correlations") +
     ggtitle("padj<0.01 (Primary and Secondary cortices)") +
     scale_color_manual(values=c("black", "#cc3433", "#336699")) +
+    geom_ribbon(data = subset(df_merge[df_merge$group=="all",], coefficient >= 0.4), 
+              aes(x = coefficient, ymin = 0, ymax = count), 
+              fill = "#ffd966", alpha = 0.2, colour = NA) + 
     theme_bw() +
     theme(text = element_text(size=8))
 
@@ -216,6 +219,9 @@ gc2 <- ggplot(df_merge, aes(x=coefficient, y=count, color=group)) +
     ylab("overlapped correlations") +
     ggtitle("padj<0.01 (Limbic and Association cortices)") +
     scale_color_manual(values=c("black", "#cc3433", "#336699")) +
+    geom_ribbon(data = subset(df_merge[df_merge$group=="all",], coefficient >= 0.4), 
+              aes(x = coefficient, ymin = 0, ymax = count), 
+              fill = "#ffd966", alpha = 0.2, colour = NA) + 
     theme_bw() +
     theme(text = element_text(size=8))
 
