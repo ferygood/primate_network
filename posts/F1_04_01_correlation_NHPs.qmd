@@ -8,6 +8,8 @@
 
 ![](/figures/nhp_c2_boxplot.jpg){width="478"}
 
+![](/figures/mayo_simulation_wrap_boxplot.jpg){width="482"}
+
 ```{r}
 library(dplyr)
 library(purrr)
@@ -69,7 +71,6 @@ count_pp_c2 <- get_count_parallel("/group/ag_nowick/data/yao/results_c2_pp/gene_
 
 count_mm_c1 <- get_count_parallel("/group/ag_nowick/data/yao/results_c1_mm/gene_")
 count_mm_c2 <- get_count_parallel("/group/ag_nowick/data/yao/results_c2_mm/gene_")
-
 
 ```
 
@@ -278,4 +279,82 @@ nhp_c2_g <- ggplot(df_c2_pivot, aes(x=label, y=log(count))) +
 
 ggsave(nhp_c2_g, file="../figures/nhp_c2_boxplot.jpg", 
        dpi=400, width=5, height=4)
+```
+
+## Mayo Data
+
+```{r}
+count_cbe <- get_count_parallel("/group/ag_nowick/data/yao/results_cbe/gene_")
+count_cbe_AD <- get_count_parallel("/group/ag_nowick/data/yao/results_cbe_AD/gene_")
+count_tcx <- get_count_parallel("/group/ag_nowick/data/yao/results_tcx/gene_")
+count_tcx_AD <- get_count_parallel("/group/ag_nowick/data/yao/results_tcx_AD/gene_")
+```
+
+```{r}
+preprocess_df <- function(df, label_name){
+    
+    df_new <- df %>%
+        mutate(all = positive_count + negative_count) %>%
+        mutate(label = label_name)
+    
+    colnames(df_new) <- c("positive", "negative", "all", "label")
+    df_new
+}
+
+df_cbe <- preprocess_df(count_cbe, "cbe_control")
+df_cbe_AD <- preprocess_df(count_cbe_AD, "cbe_AD")
+df_tcx <- preprocess_df(count_tcx, "tcx_control")
+df_tcx_AD <- preprocess_df(count_tcx_AD, "tcx_AD")
+
+df_mayo_combine <- rbind(df_cbe, df_cbe_AD, df_tcx, df_tcx_AD)
+
+df_mayo_combine <- df_mayo_combine %>%
+    pivot_longer(cols = c("positive", "negative", "all"), 
+                 names_to = "group",
+                 values_to = "count")
+
+df_mayo_combine$label <- factor(df_mayo_combine$label,
+                                levels=c("cbe_control", "cbe_AD", "tcx_control", "tcx_AD"))
+
+#write.csv(df_mayo_combine, file="../tables/mayo_simulation1000.csv", row.names = F)
+```
+
+### visualize results
+
+```{r}
+cbe_control_corr <- mayoTEKRABber$cbeControlCorr %>% filter(padj<0.01)
+cbe_AD_corr <- mayoTEKRABber$cbeADCorr %>% filter(padj<0.01)
+tcx_control_corr <- mayoTEKRABber$tcxControlCorr %>% filter(padj<0.01)
+tcx_AD_corr <- mayoTEKRABber$tcxADCorr %>% filter(padj<0.01)
+
+df_mayo_tekrabznf <- data.frame(
+    label = c("cbe_control", "cbe_control", "cbe_control",
+              "cbe_AD", "cbe_AD", "cbe_AD",
+              "tcx_control", "tcx_control", "tcx_control",
+              "tcx_AD", "tcx_AD", "tcx_AD"),
+    group = c("all", "positive","negative",
+              "all", "positive","negative",
+              "all", "positive","negative",
+              "all", "positive","negative"),
+    count = c(13710, 7956, 5754,
+              5536, 3477, 2059,
+              6192, 3876, 2316,
+              1313, 896, 417)
+)
+
+
+g_mayo <- ggplot(df_mayo_combine, aes(x=label, y=log(count))) +
+    geom_boxplot() +
+    geom_point(data = df_mayo_tekrabznf, 
+               aes(x=label, y=log(count)), 
+               color="#c27ba0",
+               size=2) +
+    facet_wrap(~group) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) +
+    ylab("Normalized correlation counts") +
+    xlab("")
+
+ggsave(g_mayo, file="../figures/mayo_simulation_wrap_boxplot.jpg", 
+       width=5, height=5, dpi=400)
 ```
