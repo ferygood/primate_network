@@ -15,5 +15,11 @@ book:
         - posts/F1_01_overlapped_correlations_across_species.qmd
         - posts/F1_02_overlapped_in_ADdata.qmd
         - posts/F1_03_leave_one_out_human.qmd
+        - posts/F1_04_01_correlation_NHPs.qmd
         - posts/F1_04_c1_correlation_check.qmd
         - posts/F1_05_amount_correlation_NHPs.qmd
+        - posts/F1_06_c1c2_network.qmd
+        - posts/F2_01_youngLink_barplot.qmd
+        - posts/F3_statistical_test_with_ChIPExo.qmd
+        - posts/F5_01_analyze335network.qmd
+        - posts/F7_01_ADcorrelation.qmd

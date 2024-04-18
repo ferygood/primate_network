@@ -12,6 +12,10 @@ In this script, we try to see in the total 335 TE:KRAB-ZNF, how many of them are
 
 Prepare the set of cluster 1 and cluster 2.
 
+```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
 ```{r eval=FALSE}
 library(ggplot2)
 library(cowplot)

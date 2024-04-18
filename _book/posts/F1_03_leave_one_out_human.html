@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.549">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../posts/F1_04_c1_correlation_check.html" rel="next">
+<link href="../posts/F1_04_01_correlation_NHPs.html" rel="next">
 <link href="../posts/F1_02_overlapped_in_ADdata.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -181,8 +181,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../posts/F1_04_01_correlation_NHPs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../posts/F1_04_c1_correlation_check.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F1_05_amount_correlation_NHPs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Compare the count of correlation in NHPs</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F1_06_c1c2_network.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Create network using highly confident TE:KRAB-ZNF</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F2_01_youngLink_barplot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Proportion of young TE:KRAB-ZNF in human sample</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F3_statistical_test_with_ChIPExo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Statistical test comparing with ChIP-Exo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F5_01_analyze335network.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Compare 335 links with other NHPs.</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F7_01_ADcorrelation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">AD correlation part update</span></span></a>
   </div>
 </li>
       </ul>
@@ -217,7 +259,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>In primate brain data, human has four biological replicates and the NHPs only have three. Therefore, we make sure that the amount of correlation is not cause by higher biological replicate but because of species.</p>
+<p>In primate brain data, human has four biological replicates and the NHPs only have three. Therefore, we make sure that the amount of correlation is not cause by higher biological replicate but because of species. However, our results suggest that different number will affect the correlation results. Therefore, we consider correlations that only existed in all four biological samples.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(TEKRABber)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(twice)</span>
@@ -293,24 +335,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># let us assume the cutoff will be absolute cofficient larger than 0.3 and </span></span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># p-adj less than 0.01</span></span>
 <span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    df_corr_sig <span class="ot">&lt;-</span> df_corr <span class="sc">%&gt;%</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(padj<span class="sc">&lt;</span><span class="fl">0.01</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(coef)<span class="sc">&gt;=</span><span class="fl">0.4</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    neg_count <span class="ot">&lt;-</span> df_corr_sig <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&lt;</span><span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    pos_count <span class="ot">&lt;-</span> df_corr_sig <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&gt;</span><span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    total_count <span class="ot">&lt;-</span> <span class="fu">nrow</span>(df_corr_sig)</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    count_kznf <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(df_corr_sig<span class="sc">$</span>geneName))</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    count_te <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(df_corr_sig<span class="sc">$</span>teName))</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"negative correlation: "</span>, neg_count))</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"positive correlation: "</span>, pos_count))</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"all correlation: "</span>, total_count))</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"unique KRAB-ZNFs: "</span>, count_kznf))</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"unique TEs: "</span>, count_te))</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    df_corr_sig</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">#filter(padj&lt;0.0 &amp; abs(coef)&gt;=0.4) %&gt;%</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(padj<span class="sc">&lt;</span><span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    neg_count <span class="ot">&lt;-</span> df_corr_sig <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&lt;</span><span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    pos_count <span class="ot">&lt;-</span> df_corr_sig <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&gt;</span><span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    total_count <span class="ot">&lt;-</span> <span class="fu">nrow</span>(df_corr_sig)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    count_kznf <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(df_corr_sig<span class="sc">$</span>geneName))</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    count_te <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(df_corr_sig<span class="sc">$</span>teName))</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"negative correlation: "</span>, neg_count))</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"positive correlation: "</span>, pos_count))</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"all correlation: "</span>, total_count))</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"unique KRAB-ZNFs: "</span>, count_kznf))</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"unique TEs: "</span>, count_te))</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    df_corr_sig</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Execute <code>corr_human</code> in cluster 1 leave one sample out analysis:</p>
 <div class="cell">
@@ -321,17 +364,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculate all 4 biological replicates</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>c1_id <span class="ot">&lt;-</span> meta_combine <span class="sc">%&gt;%</span> <span class="fu">filter</span>(cluster<span class="sc">==</span><span class="st">"cluster1"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(Run) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>()</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>c1_all <span class="ot">&lt;-</span> <span class="fu">corrOrthologTE</span>(</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">geneInput =</span> kznfs_tpm[<span class="fu">colnames</span>(kznfs_tpm) <span class="sc">%in%</span> c1_id],</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">teInput =</span> hmTE_tpm[<span class="fu">colnames</span>(hmTE_tpm) <span class="sc">%in%</span> c1_id],</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">numCore =</span> <span class="dv">5</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>c1_all_sig <span class="ot">&lt;-</span> c1_all <span class="sc">%&gt;%</span> </span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(padj<span class="sc">&lt;</span><span class="fl">0.01</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(coef)<span class="sc">&gt;=</span><span class="fl">0.4</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>c1_id <span class="ot">&lt;-</span> meta_combine <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(cluster<span class="sc">==</span><span class="st">"cluster1"</span> <span class="sc">&amp;</span> Organism<span class="sc">==</span><span class="st">"Homo sapiens"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(Run) <span class="sc">%&gt;%</span> <span class="fu">unlist</span>()</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>c1_all <span class="ot">&lt;-</span> <span class="fu">corrOrthologTE</span>(</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">geneInput =</span> kznfs_tpm[<span class="fu">colnames</span>(kznfs_tpm) <span class="sc">%in%</span> c1_id],</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">teInput =</span> hmTE_tpm[<span class="fu">colnames</span>(hmTE_tpm) <span class="sc">%in%</span> c1_id],</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">numCore =</span> <span class="dv">5</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>c1_all_sig <span class="ot">&lt;-</span> c1_all <span class="sc">%&gt;%</span> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(padj<span class="sc">&lt;</span><span class="fl">0.01</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(coef)<span class="sc">&gt;=</span><span class="fl">0.4</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <table class="table">
 <colgroup>
@@ -870,13 +915,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../posts/F1_02_overlapped_in_ADdata.html" class="pagination-link  aria-label=" &lt;span="" human="" temporal="" cortex="" and="" cerebellum="" data="" in="" control="" sample&lt;="" span&gt;"="">
+      <a href="../posts/F1_02_overlapped_in_ADdata.html" class="pagination-link" aria-label="Explore human temporal cortex and cerebellum data in control sample">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Explore human temporal cortex and cerebellum data in control sample</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../posts/F1_04_c1_correlation_check.html" class="pagination-link" aria-label="<span class='chapter-number'>5</span>&nbsp; <span class='chapter-title'>primary and secondary cortex correlation check</span>">
-        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../posts/F1_04_01_correlation_NHPs.html" class="pagination-link" aria-label="Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

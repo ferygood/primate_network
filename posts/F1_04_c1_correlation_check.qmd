@@ -6,6 +6,10 @@ From previous results, we know that only cluster1 and cluster2 have correlations
 
 ## ![](/figures/correlation_check_c2.jpg){width="430"}
 
+```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
 ## 1 check if KRAB-ZNFs are more correlated with TEs
 
 First, I select a criteria using adjusted p-value less than 0.01 with coefficients increment 0.5.

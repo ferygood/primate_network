@@ -6,6 +6,10 @@ In this script, we draw the cluster 1 and cluster 2 network in human. We also hi
 
 ![](/figures/c1_335_hm_age_network.png)
 
+```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
 ```{r eval=FALSE}
 library(dplyr)
 library(RCy3)

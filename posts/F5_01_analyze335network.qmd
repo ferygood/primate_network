@@ -1,6 +1,10 @@
 # Compare 335 links with other NHPs.
 
 ```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
+```{r}
 # load packages
 library(dplyr)
 library(RCy3)
@@ -268,3 +272,4 @@ Hm_diff <- HmC2_age %>%
 
 write.csv(Hm_diff, file="../tables/c2_35_Hm_DiffNHP.csv", row.names=F)
 ```
+

@@ -6,6 +6,10 @@ In this script, we first calculate how many correlations in other NHPs in cluste
 
 ![](/figures/upset_plot_c2.png){width="626"}
 
+```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
 ```{r eval=FALSE}
 library(dplyr)
 library(twice)

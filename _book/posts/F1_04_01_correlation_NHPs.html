@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Primate Brain Network - 3&nbsp; Explore human temporal cortex and cerebellum data in control sample</title>
+<title>Primate Brain Network - 5&nbsp; Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../posts/F1_03_leave_one_out_human.html" rel="next">
-<link href="../posts/F1_01_overlapped_correlations_across_species.html" rel="prev">
+<link href="../posts/F1_04_c1_correlation_check.html" rel="next">
+<link href="../posts/F1_03_leave_one_out_human.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -115,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_02_overlapped_in_ADdata.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Explore human temporal cortex and cerebellum data in control sample</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_04_01_correlation_NHPs.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -169,7 +169,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../posts/F1_02_overlapped_in_ADdata.html" class="sidebar-item-text sidebar-link active">
+  <a href="../posts/F1_02_overlapped_in_ADdata.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Explore human temporal cortex and cerebellum data in control sample</span></span></a>
   </div>
 </li>
@@ -181,7 +181,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../posts/F1_04_01_correlation_NHPs.html" class="sidebar-item-text sidebar-link">
+  <a href="../posts/F1_04_01_correlation_NHPs.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></span></a>
   </div>
 </li>
@@ -235,14 +235,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#mayo-data" id="toc-mayo-data" class="nav-link active" data-scroll-target="#mayo-data"><span class="header-section-number">5.1</span> Mayo Data</a>
+  <ul class="collapse">
+  <li><a href="#visualize-results" id="toc-visualize-results" class="nav-link" data-scroll-target="#visualize-results"><span class="header-section-number">5.1.1</span> visualize results</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_02_overlapped_in_ADdata.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Explore human temporal cortex and cerebellum data in control sample</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_04_01_correlation_NHPs.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Explore human temporal cortex and cerebellum data in control sample</span></h1>
+<h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></h1>
 </div>
 
 
@@ -259,43 +268,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>In this script, we get the information Mayo data has overlapped with ChIP-exo with 59 pairs in temporal cortex and 91 cerebellum.</p>
+<p><img src="../figures/correlation_check_human_cluster1.jpg" class="img-fluid" width="616"></p>
+<p><img src="../figures/correlation_check_human_cluster2.jpg" class="img-fluid" width="613"></p>
+<p><img src="../figures/nhp_c1_boxplot.jpg" class="img-fluid"></p>
+<p><img src="../figures/nhp_c2_boxplot.jpg" class="img-fluid" width="478"></p>
+<p><img src="../figures/mayo_simulation_wrap_boxplot.jpg" class="img-fluid" width="482"></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># load ChIP-exo data</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>df_enrich <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"~/github/randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># load AD data</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>tcx <span class="ot">&lt;-</span> mayoTEKRABber<span class="sc">$</span>tcxControlCorr</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>cbe <span class="ot">&lt;-</span> mayoTEKRABber<span class="sc">$</span>cbeControlCorr</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># filter data and combine pair column</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>df_enrich <span class="ot">&lt;-</span> df_enrich <span class="sc">%&gt;%</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>df_tcx <span class="ot">&lt;-</span> tcx <span class="sc">%&gt;%</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(padj <span class="sc">&lt;</span> <span class="fl">0.01</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>df_cbe <span class="ot">&lt;-</span> cbe <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(padj <span class="sc">&lt;</span> <span class="fl">0.01</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">length</span>(<span class="fu">intersect</span>(df_tcx<span class="sc">$</span>pair, df_cbe<span class="sc">$</span>pair)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">echo=</span><span class="cn">FALSE</span>, <span class="at">message=</span><span class="cn">FALSE</span>, <span class="at">eval=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tcx_exo <span class="ot">&lt;-</span> <span class="fu">intersect</span>(df_tcx<span class="sc">$</span>pair, df_enrich<span class="sc">$</span>pair)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>cbe_exo <span class="ot">&lt;-</span> <span class="fu">intersect</span>(df_cbe<span class="sc">$</span>pair, df_enrich<span class="sc">$</span>pair)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"temporal cortex is overlapped with ChIP-exo in: "</span>))</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(tcx_exo) <span class="co"># 59</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">"cerebellum is overlapped with ChIP-exo in: "</span>))</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(cbe_exo) <span class="co"># 91</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<p>Write function and iteration to get the correlation count in each species</p>
+<p>create cluster 1 figure for manuscript:</p>
+<p>create cluster 2 boxplot:</p>
+<p>Next, we create a comparison of human and NHPs.</p>
+<p>Compare cluster 2 with human and NHPs</p>
+<section id="mayo-data" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="mayo-data"><span class="header-section-number">5.1</span> Mayo Data</h2>
+<section id="visualize-results" class="level3" data-number="5.1.1">
+<h3 data-number="5.1.1" class="anchored" data-anchor-id="visualize-results"><span class="header-section-number">5.1.1</span> visualize results</h3>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -687,13 +680,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../posts/F1_01_overlapped_correlations_across_species.html" class="pagination-link" aria-label="Compare the overlaps between brain regions in human sample">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Compare the overlaps between brain regions in human sample</span></span>
+      <a href="../posts/F1_03_leave_one_out_human.html" class="pagination-link" aria-label="Leave one out analysis in human">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Leave one out analysis in human</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../posts/F1_03_leave_one_out_human.html" class="pagination-link" aria-label="Leave one out analysis in human">
-        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Leave one out analysis in human</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../posts/F1_04_c1_correlation_check.html" class="pagination-link" aria-label="primary and secondary cortex correlation check">
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

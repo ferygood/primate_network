@@ -11,6 +11,10 @@
 ![](/figures/mayo_simulation_wrap_boxplot.jpg){width="482"}
 
 ```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
+```{r}
 library(dplyr)
 library(purrr)
 library(ggplot2)

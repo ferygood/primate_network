@@ -12,6 +12,10 @@ This figure we used the same threshold (adjusted p-val \< 0.01 and absolute coef
 
 ![](/figures/teFamily_distribution_mayo.jpg){width="534"}
 
+```{r}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
+```
+
 ```{r message=FALSE}
 library(twice)
 library(dplyr)

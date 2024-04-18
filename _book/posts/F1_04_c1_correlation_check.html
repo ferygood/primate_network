@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.549">
+<meta name="generator" content="quarto-1.4.550">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Primate Brain Network - 5&nbsp; primary and secondary cortex correlation check</title>
+<title>Primate Brain Network - 6&nbsp; primary and secondary cortex correlation check</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,7 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../posts/F1_03_leave_one_out_human.html" rel="prev">
+<link href="../posts/F1_05_amount_correlation_NHPs.html" rel="next">
+<link href="../posts/F1_04_01_correlation_NHPs.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -114,7 +115,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_04_c1_correlation_check.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_04_c1_correlation_check.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -180,8 +181,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../posts/F1_04_01_correlation_NHPs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../posts/F1_04_c1_correlation_check.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F1_05_amount_correlation_NHPs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Compare the count of correlation in NHPs</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F1_06_c1c2_network.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Create network using highly confident TE:KRAB-ZNF</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F2_01_youngLink_barplot.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Proportion of young TE:KRAB-ZNF in human sample</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F3_statistical_test_with_ChIPExo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Statistical test comparing with ChIP-Exo</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F5_01_analyze335network.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Compare 335 links with other NHPs.</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../posts/F7_01_ADcorrelation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">AD correlation part update</span></span></a>
   </div>
 </li>
       </ul>
@@ -196,17 +239,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#section" id="toc-section" class="nav-link active" data-scroll-target="#section"><span class="header-section-number">5.1</span> <img src="../figures/correlation_check_c2.jpg" class="img-fluid" width="430"></a></li>
-  <li><a href="#check-if-krab-znfs-are-more-correlated-with-tes" id="toc-check-if-krab-znfs-are-more-correlated-with-tes" class="nav-link" data-scroll-target="#check-if-krab-znfs-are-more-correlated-with-tes"><span class="header-section-number">5.2</span> 1 check if KRAB-ZNFs are more correlated with TEs</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link active" data-scroll-target="#section"><span class="header-section-number">6.1</span> <img src="../figures/correlation_check_c2.jpg" class="img-fluid" width="430"></a></li>
+  <li><a href="#check-if-krab-znfs-are-more-correlated-with-tes" id="toc-check-if-krab-znfs-are-more-correlated-with-tes" class="nav-link" data-scroll-target="#check-if-krab-znfs-are-more-correlated-with-tes"><span class="header-section-number">6.2</span> 1 check if KRAB-ZNFs are more correlated with TEs</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_04_c1_correlation_check.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../posts/F1_00_report.html">Chapter 1 define correlation cutoff</a></li><li class="breadcrumb-item"><a href="../posts/F1_04_c1_correlation_check.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></h1>
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">primary and secondary cortex correlation check</span></h1>
 </div>
 
 
@@ -225,202 +268,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>From previous results, we know that only cluster1 and cluster2 have correlations detected. In this section, I am going to analyze the 1000 iterations result: (1) check with pvalue (2) check the idea range of coefficient (3) overlapped the results with ChIP-exo. Then we will finally get how many correlations that we want to go further.</p>
 <p><img src="../figures/correlation_check_c1.jpg" class="img-fluid" width="420"></p>
-<section id="section" class="level2" data-number="5.1">
-<h2 data-number="5.1" class="anchored" data-anchor-id="section"><span class="header-section-number">5.1</span> <img src="../figures/correlation_check_c2.jpg" class="img-fluid" width="430"></h2>
+<section id="section" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="section"><span class="header-section-number">6.1</span> <img src="../figures/correlation_check_c2.jpg" class="img-fluid" width="430"></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">echo=</span><span class="cn">FALSE</span>, <span class="at">message=</span><span class="cn">FALSE</span>, <span class="at">eval=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="check-if-krab-znfs-are-more-correlated-with-tes" class="level2" data-number="5.2">
-<h2 data-number="5.2" class="anchored" data-anchor-id="check-if-krab-znfs-are-more-correlated-with-tes"><span class="header-section-number">5.2</span> 1 check if KRAB-ZNFs are more correlated with TEs</h2>
+<section id="check-if-krab-znfs-are-more-correlated-with-tes" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="check-if-krab-znfs-are-more-correlated-with-tes"><span class="header-section-number">6.2</span> 1 check if KRAB-ZNFs are more correlated with TEs</h2>
 <p>First, I select a criteria using adjusted p-value less than 0.01 with coefficients increment 0.5.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>corr_c1 <span class="ot">&lt;-</span> hsC1</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>hsC1_sig <span class="ot">&lt;-</span> corr_c1 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(padj<span class="sc">&lt;</span><span class="fl">0.01</span>) <span class="co">#127797</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>corr_c2 <span class="ot">&lt;-</span> hsC2</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>hsC2_sig <span class="ot">&lt;-</span> corr_c2 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(padj<span class="sc">&lt;</span><span class="fl">0.01</span>) <span class="co">#49770</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a vector of file names</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>file_names <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"../data/results_c1/gene_"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>, <span class="st">"_vs_TE_corr.csv"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Use lapply to read and filter each file</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>temp_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(file_names, <span class="cf">function</span>(file_name) {</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(file_name)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  filtered_data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(padj <span class="sc">&lt;</span> <span class="fl">0.01</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nrow</span>(filtered_data)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine the results into a single vector</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>temp_list_c1 <span class="ot">&lt;-</span> <span class="fu">unlist</span>(temp_list)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>larger_count <span class="ot">&lt;-</span> <span class="fu">sum</span>(temp_list_c1 <span class="sc">&gt;</span> <span class="fu">nrow</span>(hsC1_sig))</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>total_values <span class="ot">&lt;-</span> <span class="fu">length</span>(temp_list_c1)</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>percentage <span class="ot">&lt;-</span> larger_count <span class="sc">/</span> total_values <span class="sc">*</span> <span class="dv">100</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(percentage)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df_bar_c1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">count =</span> temp_list_c1,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="st">"cluster1"</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>df_bar_c2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">count =</span> temp_list_c2,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="st">"cluster2"</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>df_bar <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_bar_c1, df_bar_c2)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>df_bar <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_bar, <span class="fu">c</span>(<span class="dv">127797</span>, <span class="st">"cluster1"</span>))</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>df_bar <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_bar, <span class="fu">c</span>(<span class="dv">49770</span>, <span class="st">"cluster2"</span>))</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>df_bar<span class="sc">$</span>count <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df_bar<span class="sc">$</span>count)</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>g_bar <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df_bar, <span class="fu">aes</span>(<span class="at">x=</span>group, <span class="at">y=</span>count<span class="sc">/</span><span class="dv">1000</span>, <span class="at">fill=</span>group)) <span class="sc">+</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> df_bar[df_bar<span class="sc">$</span>group <span class="sc">==</span> <span class="st">"cluster1"</span> <span class="sc">&amp;</span> df_bar<span class="sc">$</span>count <span class="sc">==</span> <span class="dv">127797</span>, ], </span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>               <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"TE:KRAB-ZNF"</span>), <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> df_bar[df_bar<span class="sc">$</span>group <span class="sc">==</span> <span class="st">"cluster2"</span> <span class="sc">&amp;</span> df_bar<span class="sc">$</span>count <span class="sc">==</span> <span class="dv">49770</span>, ], </span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>               <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"TE:KRAB-ZNF"</span>), <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylab</span>(<span class="st">"count (10^3)"</span>) <span class="sc">+</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlab</span>(<span class="st">""</span>) <span class="sc">+</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#e69138"</span>, <span class="st">"#e0c77b"</span>))</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(g_bar, <span class="at">file=</span><span class="st">"../figures/barplot_c1c2_check.jpg"</span>, <span class="at">dpi=</span><span class="dv">400</span>, <span class="at">width=</span><span class="dv">4</span>, <span class="at">height=</span><span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>chip_exo <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../../randomGeneSet/ChIP_Exo_Tables/kznfs_TEs_ChIP_exo_modified.csv"</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>chip_exo_pair <span class="ot">&lt;-</span> chip_exo <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair =</span> <span class="fu">paste0</span>(teName, <span class="st">":"</span>, geneName))</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>overlapped <span class="ot">&lt;-</span> <span class="fu">intersect</span>(hsC1_sig<span class="sc">$</span>pair, chip_exo_pair<span class="sc">$</span>pair) <span class="co">#869</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># create a dataframe, col1=count, col2=coefficient</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>df_temp <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">count=</span><span class="fu">numeric</span>(),</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef=</span><span class="fu">numeric</span>(),</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">group=</span><span class="fu">character</span>()</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>df_pos <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">count=</span><span class="fu">numeric</span>(),</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef=</span><span class="fu">numeric</span>(),</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">group=</span><span class="fu">character</span>()</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>df_neg <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">count=</span><span class="fu">numeric</span>(),</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef=</span><span class="fu">numeric</span>(),</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">group=</span><span class="fu">character</span>()</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq</span>(<span class="at">from=</span><span class="dv">0</span>, <span class="at">to=</span><span class="dv">1</span>, <span class="at">by=</span><span class="fl">0.05</span>)){</span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    filter_c1 <span class="ot">&lt;-</span> hsC1_sig <span class="sc">%&gt;%</span> <span class="fu">filter</span>(pair <span class="sc">%in%</span> overlapped)</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    count <span class="ot">&lt;-</span> filter_c1 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">abs</span>(coef)<span class="sc">&gt;=</span>i) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    pos_count <span class="ot">&lt;-</span> filter_c1 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&gt;=</span>i) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    neg_count <span class="ot">&lt;-</span> filter_c1 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&lt;=</span> i<span class="sc">*</span>(<span class="sc">-</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    coef <span class="ot">&lt;-</span> i</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    df_temp <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_temp, <span class="fu">c</span>(count, coef, <span class="st">"all"</span>))</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    df_pos <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_pos, <span class="fu">c</span>(pos_count, coef, <span class="st">"positive"</span>))</span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    df_neg <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_neg, <span class="fu">c</span>(neg_count, coef, <span class="st">"negative"</span>))</span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_temp) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"count"</span>, <span class="st">"coefficient"</span>, <span class="st">"group"</span>)</span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_pos) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"count"</span>, <span class="st">"coefficient"</span>, <span class="st">"group"</span>)</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_neg) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"count"</span>, <span class="st">"coefficient"</span>, <span class="st">"group"</span>)</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>df_merge <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_temp, df_pos, df_neg)</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>df_merge<span class="sc">$</span>count <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df_merge<span class="sc">$</span>count)</span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>df_merge<span class="sc">$</span>coefficient <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df_merge<span class="sc">$</span>coefficient)</span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>df_merge<span class="sc">$</span>group <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_merge<span class="sc">$</span>group, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"all"</span>, <span class="st">"positive"</span>, <span class="st">"negative"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>gc1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df_merge, <span class="fu">aes</span>(<span class="at">x=</span>coefficient, <span class="at">y=</span>count, <span class="at">color=</span>group)) <span class="sc">+</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by=</span><span class="fl">0.1</span>)) <span class="sc">+</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1000</span>, <span class="at">by=</span><span class="dv">50</span>)) <span class="sc">+</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">45</span>, <span class="at">vjust=</span><span class="fl">0.5</span>, <span class="at">hjust=</span><span class="dv">1</span>))<span class="sc">+</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylab</span>(<span class="st">"overlapped correlations"</span>) <span class="sc">+</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggtitle</span>(<span class="st">"padj&lt;0.01 (Primary and Secondary cortices)"</span>) <span class="sc">+</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"#cc3433"</span>, <span class="st">"#336699"</span>)) <span class="sc">+</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>))</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(gc1, <span class="at">file=</span><span class="st">"../figures/correlation_check_c1.jpg"</span>, <span class="at">dpi=</span><span class="dv">400</span>, <span class="at">width=</span><span class="dv">4</span>, <span class="at">height=</span><span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>overlapped_c2 <span class="ot">&lt;-</span> <span class="fu">intersect</span>(hsC2_sig<span class="sc">$</span>pair, chip_exo_pair<span class="sc">$</span>pair) <span class="co">#869</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># create a dataframe, col1=count, col2=coefficient</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>df_temp <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">count=</span><span class="fu">numeric</span>(),</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef=</span><span class="fu">numeric</span>(),</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">group=</span><span class="fu">character</span>()</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>df_pos <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">count=</span><span class="fu">numeric</span>(),</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef=</span><span class="fu">numeric</span>(),</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">group=</span><span class="fu">character</span>()</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>df_neg <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">count=</span><span class="fu">numeric</span>(),</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">coef=</span><span class="fu">numeric</span>(),</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">group=</span><span class="fu">character</span>()</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq</span>(<span class="at">from=</span><span class="dv">0</span>, <span class="at">to=</span><span class="dv">1</span>, <span class="at">by=</span><span class="fl">0.05</span>)){</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    filter_c2 <span class="ot">&lt;-</span> hsC2_sig <span class="sc">%&gt;%</span> <span class="fu">filter</span>(pair <span class="sc">%in%</span> overlapped)</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    count <span class="ot">&lt;-</span> filter_c2 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">abs</span>(coef)<span class="sc">&gt;=</span>i) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    pos_count <span class="ot">&lt;-</span> filter_c2 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&gt;=</span>i) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    neg_count <span class="ot">&lt;-</span> filter_c2 <span class="sc">%&gt;%</span> <span class="fu">filter</span>(coef<span class="sc">&lt;=</span> i<span class="sc">*</span>(<span class="sc">-</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> <span class="fu">nrow</span>()</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    coef <span class="ot">&lt;-</span> i</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    df_temp <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_temp, <span class="fu">c</span>(count, coef, <span class="st">"all"</span>))</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    df_pos <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_pos, <span class="fu">c</span>(pos_count, coef, <span class="st">"positive"</span>))</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    df_neg <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_neg, <span class="fu">c</span>(neg_count, coef, <span class="st">"negative"</span>))</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_temp) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"count"</span>, <span class="st">"coefficient"</span>, <span class="st">"group"</span>)</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_pos) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"count"</span>, <span class="st">"coefficient"</span>, <span class="st">"group"</span>)</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_neg) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"count"</span>, <span class="st">"coefficient"</span>, <span class="st">"group"</span>)</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>df_merge <span class="ot">&lt;-</span> <span class="fu">rbind</span>(df_temp, df_pos, df_neg)</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>df_merge<span class="sc">$</span>count <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df_merge<span class="sc">$</span>count)</span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>df_merge<span class="sc">$</span>coefficient <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(df_merge<span class="sc">$</span>coefficient)</span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>df_merge<span class="sc">$</span>group <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_merge<span class="sc">$</span>group, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"all"</span>, <span class="st">"positive"</span>, <span class="st">"negative"</span>))</span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>gc2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df_merge, <span class="fu">aes</span>(<span class="at">x=</span>coefficient, <span class="at">y=</span>count, <span class="at">color=</span>group)) <span class="sc">+</span></span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by=</span><span class="fl">0.1</span>)) <span class="sc">+</span></span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1000</span>, <span class="at">by=</span><span class="dv">50</span>)) <span class="sc">+</span></span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">45</span>, <span class="at">vjust=</span><span class="fl">0.5</span>, <span class="at">hjust=</span><span class="dv">1</span>))<span class="sc">+</span></span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylab</span>(<span class="st">"overlapped correlations"</span>) <span class="sc">+</span></span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggtitle</span>(<span class="st">"padj&lt;0.01 (Limbic and Association cortices)"</span>) <span class="sc">+</span></span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"#cc3433"</span>, <span class="st">"#336699"</span>)) <span class="sc">+</span></span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>))</span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(gc2, <span class="at">file=</span><span class="st">"../figures/correlation_check_c2.jpg"</span>, <span class="at">dpi=</span><span class="dv">400</span>, <span class="at">width=</span><span class="dv">4</span>, <span class="at">height=</span><span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 
 
 </section>
@@ -815,11 +671,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../posts/F1_03_leave_one_out_human.html" class="pagination-link  aria-label=" &lt;span="" one="" out="" analysis="" in="" human&lt;="" span&gt;"="">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Leave one out analysis in human</span></span>
+      <a href="../posts/F1_04_01_correlation_NHPs.html" class="pagination-link" aria-label="Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Check the 1000 iterations of KRAB-ZNFs (random gene sets) with TEs</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
+      <a href="../posts/F1_05_amount_correlation_NHPs.html" class="pagination-link" aria-label="Compare the count of correlation in NHPs">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Compare the count of correlation in NHPs</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->

@@ -10,7 +10,7 @@ The purpose of this file is to check if the overlap between our correlations wit
 We first use cluster 1 as an example:
 
 ```{r}
-knitr::opts_chunk$set(echo=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
 ```
 
 ```{r}
