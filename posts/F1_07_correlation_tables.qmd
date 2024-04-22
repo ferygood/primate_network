@@ -1,0 +1,87 @@
+# Create a tables for KRAB-ZNFs and TEs in primate brain data
+
+We will build seven tables, from cluster 1 to cluster 7
+
+```{r}
+library(dplyr)
+library(twice)
+```
+
+```{r}
+df_meta <- metadata %>%
+    left_join(brain_meta, join_by(brain_region == region))
+```
+
+We first get the number of TEs,
+
+```{r}
+print_TE_express <- function(species, cluster, df){
+    
+    df_id <- df_meta %>%
+        filter(Organism==species & cluster==cluster) %>%
+        select(Run)
+    
+    df_TE <- df[!duplicated(df$name), ]
+    rownames(df_TE) <- df_TE$name
+    df_TE <- df_TE %>%
+        select(df_id$Run) %>%
+        mutate(teName=rownames(.)) %>%
+        rowwise() %>%
+        mutate(row_avg=mean(c_across(-teName)))
+    
+    df_TE <- df_TE %>% filter(row_avg >= 2)
+    
+    df_TE
+    
+}
+```
+
+```{r}
+# example usage
+df_test <- print_TE_express("Macaque mullata", "cluster3", mmTE)
+```
+
+Then we write a function to get KRAB-ZNFs
+
+```{r}
+library(gprofiler2)
+
+print_znf <- function(df, species){
+
+    syntax_list <- c("KRBOX", "MZF", "PEG", "PRDM", "RBAK", 
+                     "ZFP", "ZIK","ZIM", "ZKSCAN", "ZSCAN", "ZNF")
+
+    df_gene <- df[,c(-1)]
+    ensIDlist <- df$geneID
+    geneName <- gprofiler2::gconvert(
+        query = ensIDlist,
+        organism = species,
+        target="ENSG",
+        mthreshold = Inf,
+        filter_na = TRUE
+    )
+    
+    geneName <- geneName %>% select(c(target, name))
+    
+    filter_geneName <- geneName[grep(paste(syntax_list, collapse = "|"), 
+                                     geneName$name), ]
+    
+    df_kznf <- df %>%
+        inner_join(filter_geneName, join_by(geneID==target)) %>%
+        rowwise() %>% 
+        mutate(row_avg=mean(c_across(c(-geneID, -name)))) %>%
+        filter(row_avg >= 2)
+
+    df_kznf
+}
+```
+
+```{r}
+df_test_select <- df_test %>% filter(!name %in% hmKZNFs337$external_gene_name)
+
+df_bonobo <- print_znf(ppGene, "ppaniscus")
+df_bonobo_select <- df_bonobo %>% filter(!name %in% hmKZNFs337$external_gene_name)
+
+df_maca <- print_znf(mmGene, "mmulatta")
+df_maca_select <- df_maca %>% filter(!name %in% hmKZNFs337$external_gene_name)
+```
