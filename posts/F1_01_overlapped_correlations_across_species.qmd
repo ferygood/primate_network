@@ -110,11 +110,11 @@ hsC7 <- cluster_Corr(hsKZNFexp, hsTE_tpm, "cluster7")
 ```{r eval=FALSE}
 hsC1.sig <- hsC1 %>% filter(padj<0.01 & abs(coef) >= 0.4) #127797
 hsC2.sig <- hsC2 %>% filter(padj<0.01 & abs(coef) >= 0.4) #49770
-hsC3.sig <- hsC3 %>% filter(padj<0.01) #0
-hsC4.sig <- hsC4 %>% filter(padj<0.01) #0
-hsC5.sig <- hsC5 %>% filter(padj<0.01) #110
-hsC6.sig <- hsC6 %>% filter(padj<0.01) #5
-hsC7.sig <- hsC7 %>% filter(padj<0.01) #1
+hsC3.sig <- hsC3 %>% filter(padj<0.01 & abs(coef) >= 0.4) #0
+hsC4.sig <- hsC4 %>% filter(padj<0.01 & abs(coef) >= 0.4) #0
+hsC5.sig <- hsC5 %>% filter(padj<0.01 & abs(coef) >= 0.4) #110
+hsC6.sig <- hsC6 %>% filter(padj<0.01 & abs(coef) >= 0.4) #5
+hsC7.sig <- hsC7 %>% filter(padj<0.01 & abs(coef) >= 0.4) #1
 
 # save tables
 write.csv(hsC1.sig, file="../tables/hsC1_corr_sig.csv", row.names=FALSE)

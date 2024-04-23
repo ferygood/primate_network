@@ -204,17 +204,17 @@ df_c1_pivot$group <- factor(df_c1_pivot$group, levels=c("all","positive","negati
 # TE:KRAB-ZNF
 df_c1_tekrabznf <- data.frame(
     label = c("hm_cluster1", "hm_cluster1", "hm_cluster1",
-              "pt_cluster1", "pt_cluster1",
-              "pp_cluster1", "pp_cluster1",
-              "mm_cluster1", "mm_cluster1"),
+              "pt_cluster1", "pt_cluster1", "pt_cluster1",
+              "pp_cluster1", "pp_cluster1", "pp_cluster1",
+              "mm_cluster1", "mm_cluster1", "mm_cluster1"),
     group = c("all", "positive","negative",
-              "all", "positive", 
-              "all", "positive",
-              "all", "positive"),
+              "all", "positive","negative", 
+              "all", "positive", "negative",
+              "all", "positive", "negative"),
     count = c(127797, 100987, 26810,
-              5793, 5793,
-              46759, 46759,
-              2273, 2273)
+              5793, 5741, 52,
+              46759, 25293, 21466,
+              2273, 2052, 221)
 )
 
 nhp_c1_g <- ggplot(df_c1_pivot, aes(x=label, y=log(count))) +
@@ -256,17 +256,17 @@ df_c2_pivot$group <- factor(df_c2_pivot$group, levels=c("all","positive","negati
 # TE:KRAB-ZNF
 df_c2_tekrabznf <- data.frame(
     label = c("hm_cluster2", "hm_cluster2", "hm_cluster2",
-              "pt_cluster2", "pt_cluster2",
-              "pp_cluster2", "pp_cluster2",
-              "mm_cluster2", "mm_cluster2"),
+              "pt_cluster2", "pt_cluster2", "pt_cluster2",
+              "pp_cluster2", "pp_cluster2", "pp_cluster2",
+              "mm_cluster2", "mm_cluster2", "mm_cluster2"),
     group = c("all", "positive","negative",
-              "all", "positive", 
-              "all", "positive",
-              "all", "positive"),
+              "all", "positive", "negative",
+              "all", "positive", "negative",
+              "all", "positive", "negative"),
     count = c(49770, 38295, 11475,
-              6185, 6185,
-              20070, 20070,
-              6253, 6253)
+              6185, 6018, 167,
+              20070, 19254, 816,
+              6253, 5305, 948)
 )
 
 nhp_c2_g <- ggplot(df_c2_pivot, aes(x=label, y=log(count))) +
