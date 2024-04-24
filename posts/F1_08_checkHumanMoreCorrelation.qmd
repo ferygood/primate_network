@@ -272,6 +272,13 @@ ggsave(g, file="../figures/overlap187kznf836TE_chipexo_bar.jpg", dpi=400, width=
 
 ```
 
+For comparing the results with the Mayo Data, we compare the overlapped KRAB-ZNFs and TEs with ChIP-exo, to select a subst
+```{r}
+chipexo_PBD <- chipexo %>%
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs) #778
+
+write.csv(chipexo_PBD, file="../tables/chipexo_PBD778.csv", row.names = F)
+```
 
 
 
