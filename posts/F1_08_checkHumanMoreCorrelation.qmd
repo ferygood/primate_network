@@ -186,25 +186,93 @@ hsc2_select <- hsc2 %>%
 pt_tpm_corr <- readRDS("../../randomGeneSet/correlation_scripts/pt_tpm_corr.rds")
 
 ptc1 <- pt_tpm_corr$pt_c1_corr %>% 
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4)
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair=paste0(teName, ":", geneName))
+
 ptc2 <- pt_tpm_corr$pt_c2_corr %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4)
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair=paste0(teName, ":", geneName))
 
 pp_tpm_corr <- readRDS("../../randomGeneSet/correlation_scripts/pp_tpm_corr.rds")
 
 ppc1 <- pp_tpm_corr$pp_c1_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4)
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair=paste0(teName, ":", geneName))
 
 ppc2 <- pp_tpm_corr$pp_c2_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4)
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair=paste0(teName, ":", geneName))
 
 mm_tpm_corr <- readRDS("../../randomGeneSet/correlation_scripts/mm_tpm_corr.rds")
 mmc1 <- mm_tpm_corr$mm_c1_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4)
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair=paste0(teName, ":", geneName))
+
 mmc2 <- mm_tpm_corr$mm_c2_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4)
+    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair=paste0(teName, ":", geneName))
 
 ```
+
+## Overlapped with ChIP-exo
+
+```{r}
+chipexo <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
+chipexo <- chipexo %>%
+    mutate(pair=paste0(teName, ":", geneName))
+
+c1_hm_335 <- read.csv("../tables/c1_confirm_correlation.csv")
+c2_hm_64 <- read.csv("../tables/c2_confirm_correlation.csv")
+
+# filter with chipexo
+print_chip_result <- function(df) {
+    df_filter <- df %>% filter(pair %in% chipexo$pair)
+    neg <- df_filter %>% filter(coef < 0)
+    pos <- df_filter %>% filter(coef > 0)
+    print(paste0("negative: ", nrow(neg)))
+    print(paste0("positive: ", nrow(pos)))
+        
+}
+
+
+```
+
+```{r}
+# create a dataframe
+df_c1 <- data.frame(
+    group = rep(c("all", "positive", "negative"), times = 4),
+    species = c(rep("human", 3), rep("chimp", 3), rep("bonobo", 3), rep("macaque", 3)),
+    count = c(169, 134, 35, 10, 10, 0, 198, 39, 159, 1, 1, 0),
+    cluster = rep("cluster1", 12)
+)
+
+df_c2 <- data.frame(
+    group = rep(c("all", "positive", "negative"), times = 4),
+    species = c(rep("human", 3), rep("chimp", 3), rep("bonobo", 3), rep("macaque", 3)),
+    count = c(37, 22, 15, 29, 29, 0, 35, 33, 2, 51, 51, 0),
+    cluster = rep("cluster2", 12)
+)
+
+df_merge <- rbind(df_c1, df_c2)
+df_merge$species <- factor(df_merge$species, levels=c("human", "chimp", "bonobo", "macaque"))
+```
+
+```{r}
+library(ggplot2)
+g <- ggplot(df_merge, aes(x=species, y=count, fill=group)) +
+    geom_bar(stat = "identity", 
+             position = position_dodge(width=0.9), binwidth=20) +
+    scale_fill_manual(values = c("all" = "#999999", "positive" = "#cc3433", "negative" = "#336699")) +
+    xlab("") +
+    ylab("Overlapped Correlation counts") +
+    theme_bw() +
+    facet_wrap(~cluster, ncol=1)
+
+ggsave(g, file="../figures/overlap187kznf836TE_chipexo_bar.jpg", dpi=400, width=4, height=4)
+
+```
+
+
 
 
 
