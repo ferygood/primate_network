@@ -1,0 +1,8 @@
+1. Expression profile of PBD (Figure 2), this part I have finished and we do not need to changed.
+
+2. We use a lot of method to and find only cluster 1 and cluster 2 have correlations and it is significantly overlap with ChIP-Exo (No leave-one-out here).
+
+3. Use a leave-one-out to generate human cluster 1 and cluster 2 correlation and compare with NHPs (without ChIP-Exo because NHPs do not have ChIP-exo)
+
+4. Compare human data using from step2. with Mayo Data using temporal cortex (C1 & C2),
+and see how many overlapped correlation are lost in AD (delete cerebellum & choose only conserved one)

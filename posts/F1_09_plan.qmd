@@ -1,0 +1,150 @@
+# Plan
+
+If we are using the same subset of data to do cross-species and mayo data analysis,
+we first draw a upset plot to see how it looks like.
+
+```{r}
+library(ComplexHeatmap)
+```
+
+
+```{r}
+# load neccessary data
+chipexo_PBD <- read.csv("../tables/chipexo_PBD778.csv")
+
+```
+
+cross-species
+
+```{r}
+# 335
+df_hsc1 <- hsc1_select %>% 
+    filter(pair %in% c1_hm_335$x) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+df_ptc1 <- ptc1 %>% 
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+df_ppc1 <- ppc1 %>% 
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+df_mmc1 <- mmc1 %>% 
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+c1_list <- list(
+    hmc1_p = df_hsc1[df_hsc1$group=="positive", ]$pair,
+    hmc1_n = df_hsc1[df_hsc1$group=="negative", ]$pair,
+    ptc1_p = df_ptc1[df_ptc1$group=="positive", ]$pair,
+    ptc1_n = df_ptc1[df_ptc1$group=="negative", ]$pair,
+    ppc1_p = df_ppc1[df_ppc1$group=="positive", ]$pair,
+    ppc1_n = df_ppc1[df_ppc1$group=="negative", ]$pair,
+    mmc1_p = df_mmc1[df_mmc1$group=="positive", ]$pair,
+    mmc1_n = df_mmc1[df_mmc1$group=="negative", ]$pair
+)
+
+c1_m <- make_comb_mat(c1_list)
+
+png("../figures/upset_PBD_overlap_c1.png", width=5, height=4, units="in", res=400)
+c1_u <- UpSet(c1_m, comb_order=order(-comb_size(c1_m)), top_annotation = upset_top_annotation(c1_m, add_numbers=TRUE))
+print(c1_u)
+dev.off()
+```
+
+```{r}
+df_hsc2 <- hsc2_select %>% 
+    filter(pair %in% c2_hm_64$x) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+df_ptc2 <- ptc2 %>% 
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+df_ppc2 <- ppc2 %>% 
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+df_mmc2 <- mmc2 %>% 
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+c2_list <- list(
+    hmc2_p = df_hsc2[df_hsc2$group=="positive", ]$pair,
+    hmc2_n = df_hsc2[df_hsc2$group=="negative", ]$pair,
+    ptc2_p = df_ptc2[df_ptc2$group=="positive", ]$pair,
+    ptc2_n = df_ptc2[df_ptc2$group=="negative", ]$pair,
+    ppc2_p = df_ppc2[df_ppc2$group=="positive", ]$pair,
+    ppc2_n = df_ppc2[df_ppc2$group=="negative", ]$pair,
+    mmc2_p = df_mmc2[df_mmc2$group=="positive", ]$pair,
+    mmc2_n = df_mmc2[df_mmc2$group=="negative", ]$pair
+)
+
+c2_m <- make_comb_mat(c2_list)
+
+png("../figures/upset_PBD_overlap_c2.png", width=5, height=4, units="in", res=400)
+c2_u <- UpSet(c2_m, comb_order=order(-comb_size(c2_m)), top_annotation = upset_top_annotation(c2_m, add_numbers=TRUE))
+print(c2_u)
+dev.off()
+```
+
+merge c1 and c2
+
+```{r}
+c1c2_list <- list(
+    hmc1_p = df_hsc1[df_hsc1$group=="positive", ]$pair,
+    hmc1_n = df_hsc1[df_hsc1$group=="negative", ]$pair,
+    ptc1_p = df_ptc1[df_ptc1$group=="positive", ]$pair,
+    ppc1_p = df_ppc1[df_ppc1$group=="positive", ]$pair,
+    ppc1_n = df_ppc1[df_ppc1$group=="negative", ]$pair,
+    mmc1_p = df_mmc1[df_mmc1$group=="positive", ]$pair,
+    hmc2_p = df_hsc2[df_hsc2$group=="positive", ]$pair,
+    hmc2_n = df_hsc2[df_hsc2$group=="negative", ]$pair,
+    ptc2_p = df_ptc2[df_ptc2$group=="positive", ]$pair,
+    ppc2_p = df_ppc2[df_ppc2$group=="positive", ]$pair,
+    ppc2_n = df_ppc2[df_ppc2$group=="negative", ]$pair,
+    mmc2_p = df_mmc2[df_mmc2$group=="positive", ]$pair
+)
+
+c1c2_m <- make_comb_mat(c1c2_list)
+
+png("../figures/upset_PBD_overlap_c1c2.png", width=7, height=6, units="in", res=400)
+c1c2_u <- UpSet(c1c2_m, comb_order=order(-comb_size(c1c2_m)), top_annotation = upset_top_annotation(c1c2_m, add_numbers=TRUE))
+print(c1c2_u)
+dev.off()
+
+```
+
+human control specific
+```{r}
+tcx_control_select <- tcx_control %>%
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+tcx_ad_select <- tcx_ad %>%
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+cbe_control_select <- cbe_control %>%
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+cbe_ad_select <- cbe_ad %>%
+    filter(pair %in% chipexo_PBD$pair) %>% 
+    mutate(group=ifelse(coef>0, "positive", "negative"))
+
+lt_mayo <- list(
+    tcx_control = tcx_control_select$pair, 
+    tcx_AD = tcx_ad_select$pair,
+    cbe_control = cbe_control_select$pair,
+    cbe_AD = cbe_ad_select$pair)
+
+m_mayo <- make_comb_mat(lt_mayo)
+
+png("../figures/upset_plot_mayo.png", width=5, height=3, units="in", res=400)
+u_mayo <- UpSet(m_mayo, comb_order=order(-comb_size(m_mayo)), top_annotation=upset_top_annotation(m_mayo, add_numbers=TRUE))
+print(u_mayo)
+dev.off()
+```
+

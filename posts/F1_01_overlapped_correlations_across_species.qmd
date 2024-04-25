@@ -2,6 +2,8 @@
 
 In this script, we calculate the TE:KRAB-ZNF in based on different cluster (cluster 1 to 7). Then we create a script to run 1000 iterations to test on cluster 1 and cluster 2. (`c1c2_correlation_script.R`).
 
+![](/figures/upset_plot_c1c2.png)
+
 ```{r eval=FALSE}
 library(TEKRABber)
 library(twice)
@@ -48,18 +50,6 @@ hsKZNFexp <- df_hm_gene_tpm %>%
 rownames(hsKZNFexp) <- hsKZNFexp$external_gene_name
 
 hsKZNFexp <- hsKZNFexp %>% select(-c(133, 134)) #keep only expression data
-```
-
-Then calculate their correlation first consider all the human data.
-
-```{r eval=FALSE}
-hsCorr <- corrOrthologTE(
-    geneInput = hsKZNFexp,
-    teInput = hsTE_tpm,
-    numCore = 3
-)
-
-hsCorr.sig <- hsCorr %>%filter(padj<0.001)
 ```
 
 Next we calculate their correlation based on different brain cluster
@@ -121,34 +111,104 @@ write.csv(hsC1.sig, file="../tables/hsC1_corr_sig.csv", row.names=FALSE)
 write.csv(hsC2.sig, file="../tables/hsC2_corr_sig.csv", row.names=FALSE)
 ```
 
-We test using coefficient 0.3 as threshold
+Then we use ChIP-exo data to filter significant result and see how many positive and negative we had.
 
-```{r eval=FALSE}
-hist(hsC1.sig$coef)
-```
+```{r}
+library(ComplexHeatmap)
 
-```{r eval=FALSE}
-hist(hsC2.sig$coef)
-```
+hsc1.sig <- read.csv("../tables/hsC1_corr_sig.csv")
+hsc2.sig <- read.csv("../tables/hsC2_corr_sig.csv")
 
-The script for running 1000 iterations of correlation in cluster 1 and cluster 2 can be found in `c1c2_correlation_script.R` .
-
-```{r eval=FALSE}
-df_enrich <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
-df_enrich <- df_enrich %>%
+chipexo <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
+chipexo <- chipexo %>%
     mutate(pair = paste0(teName, ":", geneName))
 
-c1_exo <- intersect(df_enrich$pair, hsC1.sig$pair) #869
-c2_exo <- intersect(df_enrich$pair, hsC2.sig$pair) #399
-group <- intersect(c1_exo, c2_exo) #367
+hsc1.sig <- hsc1.sig %>%
+    filter(pair %in% chipexo$pair) %>%
+    mutate(group = ifelse(coef>0, "positive", "negative")) #total 869
 
+hsc2.sig <- hsc2.sig %>%
+    filter(pair %in% chipexo$pair) %>%
+    mutate(group = ifelse(coef>0, "positive", "negative")) # total 399
+
+hsc1.sig.p <- hsc1.sig %>% filter(group=="positive")
+hsc1.sig.n <- hsc1.sig %>% filter(group=="negative")
+hsc2.sig.p <- hsc2.sig %>% filter(group=="positive")
+hsc2.sig.n <- hsc2.sig %>% filter(group=="negative")
+
+c1c2 <- list(
+    c1_p = hsc1.sig.p$pair,
+    c1_n = hsc1.sig.n$pair,
+    c2_p = hsc2.sig.p$pair,
+    c2_n = hsc2.sig.n$pair
+)
+
+c1c2_m <- make_comb_mat(c1c2)
+
+png("../figures/upset_plot_c1c2.png", width=5, height=3, units="in", res=400)
+u_c1c2 <- UpSet(c1c2_m, comb_order=order(-comb_size(c1c2_m)), 
+                top_annotation=upset_top_annotation(c1c2_m, add_numbers=TRUE))
+print(u_c1c2)
+dev.off()
 ```
 
-```{r eval=FALSE}
-kznf_age <- read.csv("../data/kznf_bucket.csv")
-te_age <- read.csv("../data/Dfam_TE_simiiformes.csv")
+The next step, we create a subset that are conserved and compare with Mayo Data.
 
-hsC1.sig.filter <- hsC1.sig %>%
-    filter(pair %in% group) 
+```{r eval=FALSE}
+hsc1.sig.select <- hsc1.sig %>% select(1,2,3,6,7)
+hsc2.sig.select <- hsc2.sig %>% select(1,2,3,6,7)
+
+dfc1c2.sig <- rbind(hsc1.sig.select, hsc2.sig.select)
+
+# conserved list by merging c1 and c2
+dfc1c2.sig_unique <- dfc1c2.sig[!duplicated(dfc1c2.sig$pair, fromLast = TRUE), ] 
+write.csv(dfc1c2.sig_unique, 
+          file="../tables/c1c2_conserved_forMayo.csv", 
+          row.names = F )
+
+# add age information for doing network analysis
+young_kznf <- kznf_infer %>% filter(age=="young")
+
+hsc1.sig.select <- hsc1.sig.select %>%
+    mutate(age=ifelse(geneName %in% young_kznf$external_gene_name | 
+                          teName %in% te_infer$NM, "young", "old"))
+
+hsc2.sig.select <- hsc2.sig.select %>%
+    mutate(age=ifelse(geneName %in% young_kznf$external_gene_name | 
+                          teName %in% te_infer$NM, "young", "old"))
+
+write.csv(hsc1.sig.select, file="../tables/hmc1_sig_forNetwork.csv",
+          row.names = F)
+
+write.csv(hsc2.sig.select, file="../tables/hmc2_sig_forNetwork.csv",
+          row.names = F)
+```
+
+## Here we first look into MayoData, but we need to move this paragraph somewhere else
+
+```{r eval=FALSE}
+load("../data/mayoTEKRABber_balance.RData") # load mayo RNA seq result
+
+tcx_control <- mayoTEKRABber$tcxControlCorr %>% 
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    mutate(group=ifelse(coef>0, "positive", "negative")) %>%
+    filter(pair %in% chipexo$pair & padj<0.01 & abs(coef)>=0.4)  #59
+
+tcx_ad <- mayoTEKRABber$tcxADCorr %>% 
+    mutate(pair = paste0(teName, ":", geneName)) %>%
+    mutate(group=ifelse(coef>0, "positive", "negative")) %>%
+    filter(pair %in% chipexo$pair & padj<0.01 & abs(coef)>=0.4)  #3
+```
+
+See how the overlapped in control
+
+```{r eval=FALSE}
+tcx_control_filter <- tcx_control %>%
+    inner_join(dfc1c2.sig_unique[,c(4,5)], by=c("group", "pair"))
+
+tcx_control_specific <- tcx_control %>%
+    filter(!pair %in% tcx_ad$pair) %>%
+    filter(pair %in% tcx_control_filter$pair)
+
 
 ```

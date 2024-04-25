@@ -18,86 +18,22 @@ library(netZooR)
 
 Load data
 
-```{r eval=FALSE}
-kznf_age <- read.csv("../tables/kznf_bucket.csv")
-hm_c1 <- read.csv("../tables/hsC1_corr_sig.csv")
-hm_c2 <- read.csv("../tables/hsC2_corr_sig.csv")
-
-c1_list <- read.csv("../tables/c1_confirm_correlation.csv")
-c2_list <- read.csv("../tables/c2_confirm_correlation.csv")
-```
-
-Filter only high confidence pair
-
-```{r eval=FALSE}
-hm_c1_sig <- hm_c1 %>% filter(pair %in% c1_list$x)
-hm_c2_sig <- hm_c2 %>% filter(pair %in% c2_list$x)
-```
-
 In cluster 1
 
 ```{r eval=FALSE}
-#1. How many unique KRAB-ZNFs and TEs?
-length(unique(hm_c1_sig$geneName)) #59
-length(unique(hm_c1_sig$teName)) #167
-
-#2. How many unique KRAB-ZNFs and TEs in positive and negative?
-hm_c1_sig %>% filter(coef>0) %>% distinct(geneName) %>% nrow() #52 in positive
-hm_c1_sig %>% filter(coef<0) %>% distinct(geneName) %>% nrow() #23 in negative
-hm_c1_sig %>% filter(coef>0) %>% distinct(teName) %>% nrow() #132 in positive
-hm_c1_sig %>% filter(coef<0) %>% distinct(teName) %>% nrow() #53 in negative
-
-#3. the age of these KRAB-ZNFs
-pos_kznf_c1 <- hm_c1_sig %>% 
-    filter(coef>0) %>% 
-    count(geneName, name = "link") %>%
-    mutate(coef="positive") %>%
-    left_join(kznf_age[,c(2,6)], join_by(geneName == external_gene_name))
-
-pos_te_c1 <- hm_c1_sig %>%
-    filter(coef>0) %>%
-    count(teName, name = "link") %>%
-    mutate(coef="positive") %>%
-    mutate(age = ifelse(teName %in% te_infer$NM, "young", "old"))
-
-neg_kznf_c1 <- hm_c1_sig %>%
-    filter(coef<0) %>%
-    count(geneName, name = "link") %>%
-    mutate(coef="negative") %>%
-    left_join(kznf_age[,c(2,6)], join_by(geneName == external_gene_name))
-
-neg_te_c1 <- hm_c1_sig %>%
-    filter(coef<0) %>%
-    count(teName, name = "link") %>%
-    mutate(coef="negative") %>%
-    mutate(age = ifelse(teName %in% te_infer$NM, "young", "old"))
-
-intersect(pos_kznf_c1$geneName, neg_kznf_c1$geneName) # there are 16 of them have both positive and negative correlation
-
-df_kznf_merge <- rbind(pos_kznf_c1, neg_kznf_c1)
-write.csv(df_kznf_merge, file="../tables/c1_Hm_335_linkCount.csv", row.names=FALSE)
-
-df_te_merge <- rbind(pos_te_c1, neg_te_c1)
-write.csv(df_te_merge, file="../tables/c1_Hm_335_te_linkCount.csv", row.names=FALSE)
+hm_c1_sig <- read.csv("../tables/hmc1_sig_forNetwork.csv")
 
 c1.node <- data.frame(
     id=c(unique(hm_c1_sig$geneName), unique(hm_c1_sig$teName))
 )
 
 # add age information
-y_kznf <- kznf_infer %>% filter(age=="young")
-c1.link <- hm_c1_sig[,c(1,2,3)]
-c1.link <- c1.link %>%
-    mutate(age = 
-               ifelse(geneName %in% y_kznf$external_gene_name | 
-                          teName %in% te_infer$NM, "young", "old"))
-
+c1.link <- hm_c1_sig[,c(1,2,5,6)]
 colnames(c1.link) <- c("source", "target", "coefficnet", "age")
-
-createNetworkFromDataFrames(c1.node, c1.link)
 ```
 
 ```{r eval=FALSE}
+# use condor to calculate the bipartite modularity
 node_pair <- hm_c1_sig[,c(2,1,3)]
 node_pair$coef <- abs(node_pair$coef)
 c1_condor_obj <- createCondorObject(node_pair)
@@ -115,4 +51,38 @@ colnames(c1.node)[2] <- "group"
 c1.node$group <- as.character(c1.node$group)
 
 createNetworkFromDataFrames(c1.node, c1.link)
+```
+
+## cluster 2
+
+```{r}
+hm_c2_sig <- read.csv("../tables/hmc2_sig_forNetwork.csv")
+
+c2.node <- data.frame(
+    id=c(unique(hm_c2_sig$geneName), unique(hm_c2_sig$teName))
+)
+
+# add age information
+c2.link <- hm_c2_sig[,c(1,2,5,6)]
+colnames(c2.link) <- c("source", "target", "coefficnet", "age")
+
+# use condor to calculate the bipartite modularity
+node_pair <- hm_c2_sig[,c(2,1,3)]
+node_pair$coef <- abs(node_pair$coef)
+c2_condor_obj <- createCondorObject(node_pair)
+c2_condor_obj <- condorCluster(c2_condor_obj, cs.method = "LEC", project=F)
+
+kznf_com <- c2_condor_obj$blue.memb
+colnames(kznf_com)[1] <- "id"
+te_com <- c2_condor_obj$red.memb
+colnames(te_com)[1] <- "id"
+df_com <- rbind(kznf_com, te_com)
+
+c2.node <- c2.node %>%
+    left_join(df_com, join_by(id==id))
+colnames(c2.node)[2] <- "group"
+c2.node$group <- as.character(c2.node$group)
+
+createNetworkFromDataFrames(c2.node, c2.link)
+
 ```

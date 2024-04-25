@@ -36,5 +36,4 @@ Also, we conduct a leave-one-out analysis in human (4 biological replicates) bec
 
 We here conclude that different sample number affect the number of correlations, especially in noHa group. Therefore, we select the correlations that at least to be present in three biological replicates as the final overlapped TE:KRAB-ZNF for our down-stream analysis
 
-Finally, c1 cluster has 335 correlation (241 positive and 94 negative). file saved as `tables/c1_confirm_correlation.csv`
-c2 cluster has 64 correlation (35 positive and 29 negative). file saved as `tables/c2_confirm_correlation.csv`
+Finally, c1 cluster has 335 correlation (241 positive and 94 negative). file saved as `tables/c1_confirm_correlation.csv` c2 cluster has 64 correlation (35 positive and 29 negative). file saved as `tables/c2_confirm_correlation.csv`
