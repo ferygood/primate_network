@@ -2,9 +2,7 @@
 
 In this script, we draw the cluster 1 and cluster 2 network in human. We also highlight the young pair of TE:KRAB-ZNF.
 
-![](/figures/c1_335_hm_coef_network.png)
-
-![](/figures/c1_335_hm_age_network.png)
+![](/figures/hmc1_869_age_network.png){width="649"}
 
 ```{r}
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
@@ -51,6 +49,53 @@ colnames(c1.node)[2] <- "group"
 c1.node$group <- as.character(c1.node$group)
 
 createNetworkFromDataFrames(c1.node, c1.link)
+```
+
+```{r}
+dfc1_condor <- c1.link %>%
+    left_join(c1.node, join_by("source"=="id")) %>%
+    left_join(c1.node, join_by("target"=="id"))
+
+# divide condor 1    
+dfc1_condor_g1 <- dfc1_condor %>% filter(group.x=="1" & group.y=="1") #94
+c1.g1.node <- data.frame(
+    id=c(unique(dfc1_condor_g1$source), unique(dfc1_condor_g1$target))
+)
+
+c1.g1.link <- dfc1_condor_g1[,c(1:4)]    
+createNetworkFromDataFrames(c1.g1.node, c1.g1.link)
+
+# divide condor 3 and 5
+create_condor_network <- function(df, n_condor){
+    df_subcondor <- df %>% filter(group.x==n_condor & group.y==n_condor) #94
+    node <- data.frame(
+        id=c(unique(df_subcondor$source), unique(df_subcondor$target))
+    )
+    
+    link <- df_subcondor[,c(1:4)]    
+    createNetworkFromDataFrames(node, link)
+}
+
+create_condor_network(dfc1_condor, 2)
+create_condor_network(dfc1_condor, 3)
+create_condor_network(dfc1_condor, 4)
+create_condor_network(dfc1_condor, 5)
+```
+
+```{r}
+# we can do sth like this to calculate the degree
+dfc1_condor %>% group_by(source, coefficnet, age) %>% 
+    summarise(count=n()) %>% 
+    arrange(desc(count)) %>% 
+    filter(coefficnet=="negative" & age=="young")
+
+dfc1_condor_preprocess <- dfc1_condor %>%
+    mutate(link_class = paste0(coefficnet, "_", age)) %>%
+    group_by(group.x, group.y, link_class) %>%
+    summarise(count = n())
+    
+    
+
 ```
 
 ## cluster 2

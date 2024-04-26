@@ -1,0 +1,52 @@
+# Network analysis of human sample in PBD data
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+# load data
+hmc1 <- read.csv("../tables/hmc1_sig_forNetwork.csv")
+hmc2 <- read.csv("../tables/hmc2_sig_forNetwork.csv")
+```
+
+Q: how many links and nodes in the network?
+
+```{r}
+length(unique(hmc1$geneName)) #101
+length(unique(hmc1$teName)) #253
+# cluster 1: 354 nodes, 869 links
+
+length(unique(hmc2$geneName)) #66
+length(unique(hmc2$teName)) #181
+# cluster 2: 247 nodes, 399 links
+```
+
+Q: how many positive/negative, and young/old links?
+
+```{r}
+print_link <- function(df){
+    pos <- df %>% filter(group=="positive") %>% nrow()
+    neg <- df %>% filter(group=="negative") %>% nrow()
+    young <- df %>% filter(age=="young") %>% nrow()
+    old <- df %>% filter(age=="old") %>% nrow()
+    
+    print(paste0("positive link: ", pos))
+    print(paste0("negative link: ", neg))
+    print(paste0("young link: ", young))
+    print(paste0("old link: ", old))
+    
+}
+```
+
+A short summary table:
+
+|               |           |           |
+|---------------|-----------|-----------|
+|               | cluster 1 | cluster 2 |
+| nodes         | 354       | 247       |
+| links         | 869       | 399       |
+| positive link | 446       | 215       |
+| negative link | 423       | 184       |
+| young link    | 366       | 168       |
+| old link      | 503       | 231       |
