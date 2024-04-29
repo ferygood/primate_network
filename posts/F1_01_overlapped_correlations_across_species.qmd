@@ -10,6 +10,7 @@ library(twice)
 library(tidyverse)
 load("../data/primateBrainData.RData")
 data("hmKZNFs337")
+data("hg19rmsk_info")
 ```
 
 We first load and prepare the datasets including the raw counts of KRAB-ZNFs and TEs. Then we convert the expression raw counts to TPM.
@@ -168,14 +169,21 @@ write.csv(dfc1c2.sig_unique,
 
 # add age information for doing network analysis
 young_kznf <- kznf_infer %>% filter(age=="young")
+rmsk <- hg19rmsk_info
+rownames(rmsk) <- seq(1:nrow(rmsk))
+rmsk[rmsk$class_id=="SVA", 2] <- "SVA"
 
 hsc1.sig.select <- hsc1.sig.select %>%
     mutate(age=ifelse(geneName %in% young_kznf$external_gene_name | 
-                          teName %in% te_infer$NM, "young", "old"))
+                          teName %in% te_infer$NM, "young", "old")) %>%
+    left_join(rmsk[,c(1,2)], join_by(teName==gene_id))
+colnames(hsc1.sig.select)[7] <- "teFamily"
 
 hsc2.sig.select <- hsc2.sig.select %>%
     mutate(age=ifelse(geneName %in% young_kznf$external_gene_name | 
-                          teName %in% te_infer$NM, "young", "old"))
+                          teName %in% te_infer$NM, "young", "old")) %>%
+    left_join(rmsk[,c(1,2)], join_by(teName==gene_id))
+colnames(hsc2.sig.select)[7] <- "teFamily"
 
 write.csv(hsc1.sig.select, file="../tables/hmc1_sig_forNetwork.csv",
           row.names = F)
