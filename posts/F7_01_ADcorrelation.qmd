@@ -19,16 +19,18 @@ knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
 ```{r message=FALSE}
 library(twice)
 library(dplyr)
+library(netZooR)
+library(RCy3)
 ```
 
 Load data
 
 ```{r}
 load("../data/mayoTEKRABber_balance.RData") # load mayo RNA seq result
-c1_confirm <- read.csv("../tables/c1_confirm_correlation.csv")
-c2_confirm <- read.csv("../tables/c2_confirm_correlation.csv")
-confirm_mix <- c(c1_confirm$x, c2_confirm$x)
-confirm_mix <- confirm_mix[!duplicated(confirm_mix)] # merge the confirm list
+c1_confirm <- read.csv("../tables/hmc1_sig_forNetwork.csv")
+c2_confirm <- read.csv("../tables/hmc2_sig_forNetwork.csv")
+confirm_mix <- c(c1_confirm$pair, c2_confirm$pair)
+confirm_mix <- confirm_mix[!duplicated(confirm_mix)] # merge the confirm list, total 901
 
 chipexo <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
 chipexo_process <- chipexo %>%
@@ -77,70 +79,23 @@ print(u_mayo)
 dev.off()
 ```
 
-Try to plot the CBE 81 and TCX 55 network and calculate their modularity. These are the control specific group of correlation in adult human brain.
+Next, we want to get the control specific information:
 
 ```{r}
-# filter control specific dataframe
-cbe_control_specific <- 
-    cbe_control[!(cbe_control$pair %in% tcx_control$pair) & 
-                    !(cbe_control$pair %in% tcx_ad$pair) & 
-                    !(cbe_control$pair %in% cbe_ad$pair), ] #81
+young_kznf <- kznf_infer %>% filter(age=="young")
 
-tcx_control_specific <- 
-    tcx_control[!(tcx_control$pair %in% cbe_control$pair) &
-                    !(tcx_control$pair %in% tcx_ad$pair) &
-                    !(tcx_control$pair %in% cbe_ad$pair), ] #55
-
-# get differentially expressed list
-tcx_DE <- c("AluYa5", "AluYh3", "HERV1_LTRd", "LTR19A", "MER11B", "Eulor9B",
-            "HERVI-int", "HERVKC4-int", "LTR26B", "MER57E1")
-cbe_DE <- c("HERV-Fc1_LTR1", "LTR21B", "Chompy-7_Croc", "HERV-Fc1-int",
-            "MLT1-int", "MLT1J2-int", "UCON11")   
-# no overlap, we can use another analysis
+tcx_control_specific <- tcx_control %>% 
+    filter(pair %in% confirm_mix) %>% 
+    mutate(znfAge=ifelse(geneName %in% young_kznf$external_gene_name, "young", "old")) %>%
+    mutate(teAge=ifelse(teName %in% te_infer$NM, "young", "old")) %>%
+    mutate(age=ifelse(znfAge=="old" & teAge=="old", "old", "young"))
 ```
 
-```{r}
-library(RCy3)
-library(netZooR)
+We got the dataframe `tcx_control_specific` and there are 14 young links and 7 old links.
 
-# node information
-y_kznf <- kznf_infer %>%filter(age=="young")
-
-cbe.node <- data.frame(
-    id=c(unique(cbe_control_specific$geneName), unique(cbe_control_specific$teName))
-)
-
-cbe_node_pair <- cbe_control_specific[,c(2,1,4)]
-cbe_node_pair$coef <- abs(cbe_node_pair$coef)
-cbe_condor <- createCondorObject(cbe_node_pair)
-cbe_condor <- condorCluster(cbe_condor, cs.method="LEC", project=F)
-
-cbe_kznf <- cbe_condor$blue.memb
-colnames(cbe_kznf)[1] <- "id"
-cbe_te <- cbe_condor$red.memb
-colnames(cbe_te)[1] <- "id"
-cbe_com_df <- rbind(cbe_kznf, cbe_te)
-
-cbe.node <- cbe.node %>%
-    left_join(cbe_com_df, join_by(id==id))
-
-# add age information
-y_kznf <- kznf_infer %>% filter(age=="young")
-cbe.link <- cbe_control_specific[,c(1,2,4)]
-cbe.link <- cbe.link %>%
-    mutate(age = 
-               ifelse(geneName %in% y_kznf$external_gene_name | 
-                          teName %in% te_infer$NM, "young", "old"))
-
-colnames(cbe.link) <- c("source", "target", "coefficnet", "age")
-
-createNetworkFromDataFrames(cbe.node, cbe.link)
-```
-
-compare the expression and correlation between intersects
+We then try to visualize the network to have a first glance:
 
 ```{r}
-# temporal cortex 55
 tcx.node <- data.frame(
     id=c(unique(tcx_control_specific$geneName), unique(tcx_control_specific$teName))
 )
@@ -170,89 +125,60 @@ tcx.link <- tcx.link %>%
 colnames(tcx.link) <- c("source", "target", "coefficnet", "age")
 
 createNetworkFromDataFrames(tcx.node, tcx.link)
+
 ```
 
-Based on the upsetplot, we try to see what happened to the same pair of TE:KRAB-ZNF in different condition group of data. First, let's see some correlation that only appear in one of the condition. For example, 81 of the cbe_control data.
+Based on the upsetplot, we try to see what happened to the same pair of TE:KRAB-ZNF in different condition group of data. First, let's see some correlation that only appear in one of the condition. 
 
 ```{r}
-cbe_ad_raw <- mayoTEKRABber$cbeADCorr %>%
-    mutate(pair = paste0(teName, ":", geneName)) %>%
-    filter(pair %in% cbe_control_specific$pair) %>%
-    filter(abs(coef)>=0.4) %>%
-    inner_join(cbe_control_specific[,c(4,6)], join_by(pair==pair)) %>%
-    filter(coef.x * coef.y < 0)
-
-# only one overlapped opposite MER11D:ZNF611 (control: 0.715 and AD: -0.49)
-```
-
-For the same pair of cbe_control_specific (81) in AD, we found that only 26 of them have abs(coef)\>=0.4 but none of them have padj\<0.01, therefore they are exclude at the end. When compare these 26, we found only one pair MER11D:ZNF611 is opposite correlation comparing control and AD.
-
-Next, we compare the 55 tcx_control_specific:
-
-```{r}
-tcx_ad_compare <- mayoTEKRABber$tcxADCorr %>%
+tcx_ad_raw <- mayoTEKRABber$tcxADCorr %>%
     mutate(pair = paste0(teName, ":", geneName)) %>%
     filter(pair %in% tcx_control_specific$pair) %>%
-    filter(abs(coef)>=0.4) %>% 
-    inner_join(tcx_control_specific[,c(4,6)], join_by(pair==pair)) %>%
-    filter(coef.x * coef.y > 0) #33
-        
+    inner_join(tcx_control_specific[,c(4,6)], join_by(pair==pair))
+
+# only one overlapped opposite L1MA6:ZNF211 (control: -0.73 and AD: 0.025)
 ```
 
-Similar to cbe case, correlations have not passed padj\<0.01 in AD, however, 33 of them have the same direction (absolute coefficient larger than 0.4).
-
-Then we have 10 overlap between cbe_control and cbe_AD:
-
-```{r}
-cbe_compare_list<- intersect(cbe_control$pair, cbe_ad$pair)
-cbe_compare_df <- cbe_control %>%
-    inner_join(cbe_ad[,c(4,6)], join_by(pair==pair))
-    
-```
 
 Summary:
 
 \(1\) The direction of correlations are similar and the main difference are the significant between condition (adjusted pvalue \< 0.01).
 
-\(2\) An unique case is MER11D:ZNF611, which are positive correlated in cbe control group (0.715) but negatively correlated in cbe AD group (-0.49). MER11D:ZNF611 are not significantly correlated in temporal cortex region.
+\(2\) An unique case is MER11D:ZNF611, which are positive correlated in tcx AD group (0.715) but negatively correlated in cbe AD group (-0.49). MER11D:ZNF611 are not significantly correlated in temporal cortex region.
 
 ```{r}
 # here we plot a scatter plot of MER11D:ZNF611
 
 library(ggplot2)
-cbe_gene_exp <- mayoTEKRABber$cbeDE$normalized_gene_counts
-cbe_te_exp <- mayoTEKRABber$cbeDE$normalized_te_counts
 
-# MER11D:ZNF611
-znf611 <- cbe_gene_exp["ZNF611", ] %>% unlist()
-mer11d <- cbe_te_exp["MER11D", ] %>% unlist()
-df_znf611_mer11d <- data.frame(
-    znf611 = znf611,
-    mer11d = mer11d,
-    group = c(rep("Control", 23), rep("AD", 22))
-)
-
-df_znf611_mer11d$group <- factor(df_znf611_mer11d$group, levels=c("Control", "AD"))
-
-g1 <- ggplot(df_znf611_mer11d, 
-             aes(x = znf611, y = mer11d, fill = group, color = group)) +
-  geom_point(size = 2, shape = 21) +
-  facet_wrap(~ group) +
-  geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
-  scale_fill_manual(values = c("#B1DEFB", "#f6b26b")) +  
-  scale_color_manual(values = c("#0b5394", "#ce7e00")) +
-    xlab("ZNF611") +
-    ylab("MER11D") +
-    ggtitle("MER11D:ZNF611 in cerebellum") +
-  theme_bw()
-# Control: R=0.715, adj-p=0.00518
-# AD: R=-0.487, adj-p=0.132
-
-
-# AluYc:ZNF519
 tcx_gene_exp <- mayoTEKRABber$tcxDE$normalized_gene_counts
 tcx_te_exp <- mayoTEKRABber$tcxDE$normalized_te_counts
 
+# L1MA6:ZNF211
+znf211 <- tcx_gene_exp["ZNF211",] %>% unlist()
+l1ma6 <- tcx_te_exp["L1MA6", ] %>% unlist()
+df_znf211_l1ma6 <- data.frame(
+    ZNF211 = znf211,
+    L1MA6 = l1ma6,
+    group = factor(c(rep("Control", 23), rep("AD", 24)), levels=c("Control", "AD"))
+)
+
+g1 <- ggplot(df_znf211_l1ma6, 
+             aes(x = ZNF211, y = L1MA6, fill = group, color = group)) +
+  geom_point(size = 2, shape = 21) +
+  facet_wrap(~ group) +
+  geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
+  scale_fill_manual(values = c("#b39ef1", "#98da7d")) +  
+  scale_color_manual(values = c("#8e7cc3", "#689555")) +
+    xlab("ZNF211") +
+    ylab("L1MA6") +
+    ggtitle("L1MA6:ZNF211 in temporal cortex") +
+  theme_bw()
+
+# AD: R=0.025, adj-p = 0.9702
+# Control: R=-0.726, adj-p=0.0068
+
+# AluYc:ZNF519
 znf519 <- tcx_gene_exp["ZNF519",] %>% unlist()
 aluyc <- tcx_te_exp["AluYc", ] %>% unlist()
 df_znf519_aluyc <- data.frame(
@@ -266,8 +192,8 @@ g2 <- ggplot(df_znf519_aluyc,
   geom_point(size = 2, shape = 21) +
   facet_wrap(~ group) +
   geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
-  scale_fill_manual(values = c("#B1DEFB", "#f6b26b")) +  
-  scale_color_manual(values = c("#0b5394", "#ce7e00")) +
+  scale_fill_manual(values = c("#b39ef1", "#98da7d")) +  
+  scale_color_manual(values = c("#8e7cc3", "#689555")) +
     xlab("ZNF519") +
     ylab("AluYc") +
     ggtitle("AluYc:ZNF519 in temporal cortex") +
@@ -277,8 +203,8 @@ g2 <- ggplot(df_znf519_aluyc,
 # Control: R=-0.705, adj-p=0.00983
 
 library(ggpubr)
-g_merge <- ggarrange(g2, g1, nrow=2)
-ggsave("../figures/Mayo_scatter_plot.jpg", dpi=200, width=6, height=6)
+g_merge <- ggarrange(g1, g2, nrow=2)
+ggsave(g_merge, file="../figures/Mayo_scatter_plot.jpg", dpi=200, width=6, height=6)
 ```
 
 Plot the distribution of TE family:
@@ -300,27 +226,30 @@ df_complete <- data.frame(
 
 te_info <- rbind(te_info, df_complete)
 
-cbe_control_specific_family <- cbe_control_specific %>%
-    left_join(te_info[,c(1,2)], join_by(teName==gene_id)) %>%
-    mutate(brain="cbe")
+#cbe_control_specific_family <- cbe_control_specific %>%
+#    left_join(te_info[,c(1,2)], join_by(teName==gene_id)) %>%
+#    mutate(brain="cbe")
 
 tcx_control_specific_family <- tcx_control_specific %>%
     left_join(te_info[,c(1,2)], join_by(teName==gene_id)) %>%
     mutate(brain="tcx")
 
-df_teFamily <- rbind(cbe_control_specific_family[,c(7,8)],
-                     tcx_control_specific_family[,c(7,8)])
+#df_teFamily <- rbind(cbe_control_specific_family[,c(7,8)],
+#                     tcx_control_specific_family[,c(7,8)])
 
-df_teFamily_process <- df_teFamily %>%
-    group_by(family_id, brain) %>%
-    summarise(count = n())
+#df_teFamily_process <- df_teFamily %>%
+#    group_by(family_id, brain) %>%
+#    summarise(count = n())
+
+df_teFamily_process <- tcx_control_specific_family[,c(9,10)] %>%
+    group_by(family_id, age) %>%
+    summarise(count=n())
 
 library(ggplot2)
 
-# 绘制条形图
-g3 <- ggplot(df_teFamily_process, aes(x = family_id, y = count, fill = brain)) +
+g3 <- ggplot(df_teFamily_process, aes(x = family_id, y = count, fill = age)) +
   geom_bar(stat = "identity", position = "dodge") +  
-  scale_fill_manual(values = c("tcx" = "#93c47d", "cbe" = "#d5a6bd")) +  
+  scale_fill_manual(values = c("young" = "#f6b26b", "old" = "#0b5394")) +  
   labs(x = "TE Family", y = "count", 
        title = "TE:KRAB-ZNF in control groups") +  
   theme_bw() +  
@@ -329,4 +258,10 @@ g3 <- ggplot(df_teFamily_process, aes(x = family_id, y = count, fill = brain)) +
 
 ggsave(g3, file="../figures/teFamily_distribution_mayo.jpg", 
        dpi=200, width=4, height=4)
+
+# merge g1, g2, and g3
+g_merge_all <- ggarrange(g3, g1, g2, nrow=3)
+ggsave(g_merge_all, file="../figures/tcx21_network_barplot_scatterplot.jpg", 
+       dpi=200, width=6, height=9)
+
 ```
