@@ -2,6 +2,8 @@
 
 In this script, we calculate the TE:KRAB-ZNF in based on different cluster (cluster 1 to 7). Then we create a script to run 1000 iterations to test on cluster 1 and cluster 2. (`c1c2_correlation_script.R`).
 
+Create dataframe for c1 and c2 network.
+
 ![](/figures/upset_plot_c1c2.png)
 
 ```{r eval=FALSE}
@@ -184,6 +186,17 @@ hsc2.sig.select <- hsc2.sig.select %>%
                           teName %in% te_infer$NM, "young", "old")) %>%
     left_join(rmsk[,c(1,2)], join_by(teName==gene_id))
 colnames(hsc2.sig.select)[7] <- "teFamily"
+
+# add node age
+hsc1.sig.select <- hsc1.sig.select %>%
+    mutate(znfAge = ifelse(geneName %in% young_kznf$external_gene_name, "young", "old")) %>%
+    mutate(teAge = ifelse(teName %in% te_infer$NM, "young", "old"))
+rownames(hsc1.sig.select) <- 1:nrow(hsc1.sig.select)
+
+hsc2.sig.select <- hsc2.sig.select %>%
+    mutate(znfAge = ifelse(geneName %in% young_kznf$external_gene_name, "young", "old")) %>%
+    mutate(teAge = ifelse(teName %in% te_infer$NM, "young", "old"))
+rownames(hsc2.sig.select) <- 1:nrow(hsc2.sig.select)
 
 write.csv(hsc1.sig.select, file="../tables/hmc1_sig_forNetwork.csv",
           row.names = F)

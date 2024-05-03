@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
 library(dplyr)
 library(RCy3)
 library(netZooR)
+library(ggplot2)
 ```
 
 Load data
@@ -95,6 +96,74 @@ dfc1_condor_preprocess <- dfc1_condor %>%
     summarise(count = n())
     
     
+
+```
+
+Calculate the properties of network
+
+Create the adjacency matrix
+
+```{r}
+calculate_bipartite_connectivity <- function(adjacency_matrix, threshold_percent) {
+  source_connectivity <- rowSums(adjacency_matrix)
+  target_connectivity <- colSums(adjacency_matrix)
+  
+  # Create dataframe with node type (source or target), connectivity, and node name
+  source_df <- data.frame(node_type = "KRAB-ZNF", 
+                          connectivity = source_connectivity, 
+                          node_name = rownames(adjacency_matrix))
+  target_df <- data.frame(node_type = "TE", 
+                          connectivity = target_connectivity, 
+                          node_name = colnames(adjacency_matrix))
+  
+  # Combine dataframes
+  connectivity_df <- rbind(source_df, target_df)
+  
+  # Calculate hubs based on threshold
+  connectivity_df$is_hub <- FALSE
+  hub_threshold <- quantile(connectivity_df$connectivity, 1 - threshold_percent/100)
+  connectivity_df$is_hub <- ifelse(connectivity_df$connectivity >= hub_threshold, TRUE, FALSE)
+  
+  # Calculate gatekeepers
+  connectivity_df$is_gatekeeper <- FALSE
+  for (i in 1:nrow(connectivity_df)) {
+    if (connectivity_df$node_type[i] == "KRAB-ZNF") {
+      source_node <- connectivity_df$node_name[i]
+      if (sum(adjacency_matrix[source_node,]) == 1) {
+        connectivity_df$is_gatekeeper[i] <- TRUE
+      }
+    } else if (connectivity_df$node_type[i] == "TE") {
+      target_node <- connectivity_df$node_name[i]
+      if (sum(adjacency_matrix[,target_node]) == 1) {
+        connectivity_df$is_gatekeeper[i] <- TRUE
+      }
+    }
+  }
+  
+  rownames(connectivity_df) <- 1:nrow(connectivity_df)
+  
+  connectivity_df
+}
+```
+
+```{r}
+# cluster 1
+adjmatrix_c1 <- table(dfc1_condor[,c(1,2)])
+c1_connect <- calculate_bipartite_connectivity(adjmatrix_c1, 5)
+
+c1_connect_count <- c1_connect %>% 
+    group_by(node_type, connectivity) %>%
+    summarise(count=n())
+
+g_c1_connect <- ggplot(c1_connect_count, aes(x=connectivity, y=count, fill=node_type)) +
+    geom_bar(stat="identity", position="dodge") +
+    labs(x = "Connectivity", y="Number of nodes") +
+    scale_fill_manual(values = c("KRAB-ZNF"="#C994C7", "TE"="#7BCCC4")) +
+    theme_bw()
+
+ggsave(g_c1_connect, file="../figures/networkImageC1/node_connectivity_barplot.jpg", 
+       dpi=400,width=4,height=2.5)
+
 
 ```
 
