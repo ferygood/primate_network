@@ -2,8 +2,8 @@
 
 leave-one-out to get the overlap of correlation, only select the orthologs and TEs exist in human and NHPs
 
-1. Create a metadata to select human sample (leave-one-out)
-2. Create a function to execute correlation results
+1.  Create a metadata to select human sample (leave-one-out)
+2.  Create a function to execute correlation results
 
 ```{r}
 library(dplyr)
@@ -53,6 +53,7 @@ rownames(hmTE_tpm) <- hmTE$name
 ```
 
 Because we need to convert gene ID to name, we create a function
+
 ```{r}
 convertIDtoName <- function(df, species){
     df_gene <- df[,c(-1)]
@@ -76,7 +77,6 @@ convertIDtoName <- function(df, species){
     df_kznf
 }
 ```
-
 
 ```{r}
 # 2-2 TPM in chimp
@@ -168,9 +168,287 @@ pp_kznf <- rownames(pp_kznfs_tpm) #216
 mm_kznf <- rownames(mm_kznfs_tpm) #245
 
 # overlap TEs
-overlapped_kznfs <- Reduce(intersect, list(h_kznf, pt_kznf, pp_kznf, mm_kznf))
+overlapped_kznfs <- Reduce(intersect, list(h_kznf, pt_kznf, pp_kznf, mm_kznf)) #178 overlapped KRAB-ZNFs
 overlapped_TEs <- Reduce(intersect, list(rownames(hmTE_tpm), rownames(ptTE_tpm), 
-                                         rownames(ppTE_tpm), rownames(mmTE_tpm)))
+                                         rownames(ppTE_tpm), rownames(mmTE_tpm))) #836 overlapped TEs
+```
+
+## Calculate correlation based on these overlapped KRAB-ZNFs and TEs
+
+We first calculate the leave-one-out in human (cluster1 and cluster2)
+
+```{r}
+# we first get the cluster1 and cluster2 ID in each species
+hmc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Homo sapiens")
+hmc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Homo sapiens")
+
+ptc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Pan troglodytes")
+ptc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Pan troglodytes")
+
+ppc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Pan paniscus")
+ppc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Pan paniscus")
+
+mmc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Macaca mulatta")
+mmc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Macaca mulatta")
+```
+
+Leave one out start:
+
+```{r}
+human_cor <- function(dfgene, dfte, idlist){
+    
+    corr_list <- list()
+    
+    indv_list <- c("ha", "hb", "hc", "hd")
+    
+    for (id in indv_list) {
+       id_select <- idlist %>% filter(!individual %in% id)
+       gene <- dfgene[overlapped_kznfs, id_select$Run]
+       te <- dfte[overlapped_TEs, id_select$Run]
+       
+       corr <- corrOrthologTE(
+           geneInput = gene,
+           teInput = te,
+           numCore = 3
+       )
+       
+       corr_list <- append(corr_list, list(corr))  
+       
+    }
+    
+    corr_list
+    
+}
+
+hmc1_corr_leaveOne <- human_cor(kznfs_tpm, hmTE_tpm, hmc1_id)
+hmc2_corr_leaveOne <- human_cor(kznfs_tpm, hmTE_tpm, hmc2_id)
+```
+
+Try to get the overlapped results in cluster 1 and cluster 2:
+
+```{r}
+# human c1
+c1_a <- hmc1_corr_leaveOne[[1]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+c1_b <- hmc1_corr_leaveOne[[2]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+c1_c <- hmc1_corr_leaveOne[[3]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+c1_d <- hmc1_corr_leaveOne[[4]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+
+c1_overlap <- Reduce(intersect, list(c1_a$pair, c1_b$pair, c1_c$pair, c1_d$pair)) #31891
+
+c2_a <- hmc2_corr_leaveOne[[1]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+c2_b <- hmc2_corr_leaveOne[[2]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+c2_c <- hmc2_corr_leaveOne[[3]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+c2_d <- hmc2_corr_leaveOne[[4]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
+
+c2_overlap <- Reduce(intersect, list(c2_a$pair, c2_b$pair, c2_c$pair, c2_d$pair)) #4444
+```
+
+A sanity check, to see the overlapped are the same direction
+
+```{r}
+library(ComplexHeatmap)
+
+corr_set <- function(df, filter_list){
+    
+    all <- df %>% filter(pair %in% filter_list)
+    pos <- all %>% filter(coef > 0)
+    neg <- all %>% filter(coef < 0)
+    
+    result <- list(
+        all = all$pair,
+        pos = pos$pair,
+        neg = neg$pair
+    )
+    
+    result
+    
+}
+
+# cluster 1
+c1_a_set <- corr_set(c1_a, c1_overlap)
+c1_b_set <- corr_set(c1_b, c1_overlap)
+c1_c_set <- corr_set(c1_c, c1_overlap)
+c1_d_set <- corr_set(c1_d, c1_overlap)
+
+lt_c1 <- list(
+    c1_a_p = c1_a_set$pos,
+    c1_a_n = c1_a_set$neg,
+    c1_b_p = c1_b_set$pos,
+    c1_b_n = c1_b_set$neg,
+    c1_c_p = c1_c_set$pos,
+    c1_c_n = c1_c_set$neg,
+    c1_d_p = c1_d_set$pos,
+    c1_d_n = c1_d_set$neg)
+    
+m_c1 <- make_comb_mat(lt_c1)
+
+png("../figures/upset_plot_c1_leaveOneOut.png", width=4, height=5, units="in", res=400)
+u_c1 <- UpSet(m_c1, comb_order=order(-comb_size(m_c1)), top_annotation=upset_top_annotation(m_c1, add_numbers=TRUE))
+print(u_c1)
+dev.off()
+
+# cluster 2
+c2_a_set <- corr_set(c2_a, c2_overlap)
+c2_b_set <- corr_set(c2_b, c2_overlap)
+c2_c_set <- corr_set(c2_c, c2_overlap)
+c2_d_set <- corr_set(c2_d, c2_overlap)
+
+lt_c2 <- list(
+    c2_a_p = c2_a_set$pos,
+    c2_a_n = c2_a_set$neg,
+    c2_b_p = c2_b_set$pos,
+    c2_b_n = c2_b_set$neg,
+    c2_c_p = c2_c_set$pos,
+    c2_c_n = c2_c_set$neg,
+    c2_d_p = c2_d_set$pos,
+    c2_d_n = c2_d_set$neg)
+    
+m_c2 <- make_comb_mat(lt_c2)
+
+png("../figures/upset_plot_c2_leaveOneOut.png", width=4, height=5, units="in", res=400)
+u_c2 <- UpSet(m_c2, comb_order=order(-comb_size(m_c2)), top_annotation=upset_top_annotation(m_c2, add_numbers=TRUE))
+print(u_c2)
+dev.off()
+
+
+
+```
+
+![](/figures/upset_plot_c1_leaveOneOut.png){width="317"}
+
+![](/figures/upset_plot_c2_leaveOneOut.png){width="321"}
+
+Next we calculate the correlations in NHPs:
+
+```{r}
+ptc1_corr <- corrOrthologTE(
+    geneInput = pt_kznfs_tpm[overlapped_kznfs, ptc1_id$Run],
+    teInput = ptTE_tpm[overlapped_TEs, ptc1_id$Run],
+    numCore = 3
+)
+
+ptc2_corr <- corrOrthologTE(
+    geneInput = pt_kznfs_tpm[overlapped_kznfs, ptc2_id$Run],
+    teInput = ptTE_tpm[overlapped_TEs, ptc2_id$Run],
+    numCore = 3
+)
+
+ppc1_corr <- corrOrthologTE(
+    geneInput = pp_kznfs_tpm[overlapped_kznfs, ppc1_id$Run],
+    teInput = ppTE_tpm[overlapped_TEs, ppc1_id$Run],
+    numCore = 3
+)
+
+ppc2_corr <- corrOrthologTE(
+    geneInput = pp_kznfs_tpm[overlapped_kznfs, ppc2_id$Run],
+    teInput = ppTE_tpm[overlapped_TEs, ppc2_id$Run],
+    numCore = 3
+)
+
+mmc1_corr <- corrOrthologTE(
+    geneInput = mm_kznfs_tpm[overlapped_kznfs, mmc1_id$Run],
+    teInput = mmTE_tpm[overlapped_TEs, mmc1_id$Run],
+    numCore =3
+)
+
+mmc2_corr <- corrOrthologTE(
+    geneInput = mm_kznfs_tpm[overlapped_kznfs, mmc2_id$Run],
+    teInput = mmTE_tpm[overlapped_TEs, mmc2_id$Run],
+    numCore =3
+)
+```
+
+Then we use the same filtering criteria, coefficient larger than 0.4 or lower than -0.4 with adjusted p-value less than 0.01.
+
+```{r}
+# This function is for filling the excel table:
+print_sig <- function(df){
+    pos <- df %>% filter(padj<0.01 & coef>0.4) %>% nrow()
+    neg <- df %>% filter(padj<0.01 & coef< -0.4) %>% nrow()
+    
+    print(paste0("positive: ", pos))
+    print(paste0("negative: ", neg))
+}
+```
+
+Finally, we use upsteplot to see their overlap:
+
+Q1: Do human have more correlations?
+
+Q2: What is the identity of subset? for example, human-specific.
+
+```{r}
+corr_obj <- function(df){
+    
+    df_sig <- df %>% 
+        filter(abs(coef)>0.4 & padj<0.01) %>%
+        mutate(pair=paste0(teName, ":", geneName))
+    
+    all <- df_sig$pair
+    pos <- df_sig %>% filter(coef>0)
+    neg <- df_sig %>% filter(coef<0)
+    
+    result <- list(
+        pos=pos$pair,
+        neg=neg$pair
+    )
+    
+    result
+}
+
+# cluster 1
+hm_cluster1 <- c1_a %>%
+    filter(pair %in% c1_overlap)
+hm_cluster1 <- corr_obj(hm_cluster1)
+
+chimp_cluster1 <- corr_obj(ptc1_corr)
+bonobo_cluster1 <- corr_obj(ppc1_corr)
+maca_cluster1 <- corr_obj(mmc1_corr)
+
+pbd_c1 <- list(
+    hs_p = hm_cluster1$pos,
+    hs_n = hm_cluster1$neg,
+    pt_p = chimp_cluster1$pos,
+    pt_n = chimp_cluster1$neg,
+    pp_p = bonobo_cluster1$pos,
+    pp_n = bonobo_cluster1$neg,
+    mm_p = maca_cluster1$pos,
+    mm_n = maca_cluster1$neg)
+    
+m_pbd_c1 <- make_comb_mat(pbd_c1)
+
+png("../figures/upset_plot_c1_pbd.png", width=6, height=5, units="in", res=400)
+u_pbd_c1 <- UpSet(m_pbd_c1, comb_order=order(-comb_size(m_pbd_c1)), 
+              top_annotation=upset_top_annotation(m_pbd_c1, add_numbers=TRUE))
+print(u_pbd_c1)
+dev.off()
+
+# cluster 2
+hm_cluster2 <- c2_a %>%
+    filter(pair %in% c2_overlap)
+hm_cluster2 <- corr_obj(hm_cluster2)
+
+chimp_cluster2 <- corr_obj(ptc2_corr)
+bonobo_cluster2 <- corr_obj(ppc2_corr)
+maca_cluster2 <- corr_obj(mmc2_corr)
+
+pbd_c2 <- list(
+    hs_p = hm_cluster2$pos,
+    hs_n = hm_cluster2$neg,
+    pt_p = chimp_cluster2$pos,
+    pt_n = chimp_cluster2$neg,
+    pp_p = bonobo_cluster2$pos,
+    pp_n = bonobo_cluster2$neg,
+    mm_p = maca_cluster2$pos,
+    mm_n = maca_cluster2$neg)
+    
+m_pbd_c2 <- make_comb_mat(pbd_c2)
+
+png("../figures/upset_plot_c2_pbd.png", width=6, height=5, units="in", res=400)
+u_pbd_c2 <- UpSet(m_pbd_c2, comb_order=order(-comb_size(m_pbd_c2)), 
+              top_annotation=upset_top_annotation(m_pbd_c2, add_numbers=TRUE))
+print(u_pbd_c2)
+dev.off()
 ```
 
 ```{r}
@@ -273,6 +551,7 @@ ggsave(g, file="../figures/overlap187kznf836TE_chipexo_bar.jpg", dpi=400, width=
 ```
 
 For comparing the results with the Mayo Data, we compare the overlapped KRAB-ZNFs and TEs with ChIP-exo, to select a subst
+
 ```{r}
 chipexo_PBD <- chipexo %>%
     filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs) #778
@@ -280,115 +559,7 @@ chipexo_PBD <- chipexo %>%
 write.csv(chipexo_PBD, file="../tables/chipexo_PBD778.csv", row.names = F)
 ```
 
-
-
-
-```{r}
-# sample ID list
-hmc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Homo sapiens")
-hmc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Homo sapiens")
-
-ptc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Pan troglodytes")
-ptc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Pan troglodytes")
-
-ppc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Pan paniscus")
-ppc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Pan paniscus")
-
-mmc1_id <- df_meta %>% filter(cluster=="cluster1" & Organism=="Macaca mulatta")
-mmc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Macaca mulatta")
-```
-
-
-```{r}
-human_cor <- function(dfgene, dfte, idlist){
-    
-    corr_list <- list()
-    
-    indv_list <- c("ha", "hb", "hc", "hd")
-    
-    for (id in indv_list) {
-       id_select <- idlist %>% filter(!individual %in% id)
-       gene <- dfgene[overlapped_kznfs, id_select$Run]
-       te <- dfte[overlapped_TEs, id_select$Run]
-       
-       corr <- corrOrthologTE(
-           geneInput = gene,
-           teInput = te,
-           numCore = 3
-       )
-       
-       corr_list <- append(corr_list, list(corr))  
-       
-    }
-    
-    corr_list
-    
-}
-```
-
-```{r}
-hmc1_corr_leaveOne <- human_cor(kznfs_tpm, hmTE_tpm, hmc1_id)
-hmc2_corr_leaveOne <- human_cor(kznfs_tpm, hmTE_tpm, hmc2_id)
-```
-
-```{r}
-ptc1_corr <- corrOrthologTE(
-    geneInput = pt_kznfs_tpm[overlapped_kznfs, ptc1_id$Run],
-    teInput = ptTE_tpm[overlapped_TEs, ptc1_id$Run],
-    numCore = 3
-)
-
-ptc2_corr <- corrOrthologTE(
-    geneInput = pt_kznfs_tpm[overlapped_kznfs, ptc2_id$Run],
-    teInput = ptTE_tpm[overlapped_TEs, ptc2_id$Run],
-    numCore = 3
-)
-
-ppc1_corr <- corrOrthologTE(
-    geneInput = pp_kznfs_tpm[overlapped_kznfs, ppc1_id$Run],
-    teInput = ppTE_tpm[overlapped_TEs, ppc1_id$Run],
-    numCore = 3
-)
-
-ppc2_corr <- corrOrthologTE(
-    geneInput = pp_kznfs_tpm[overlapped_kznfs, ppc2_id$Run],
-    teInput = ppTE_tpm[overlapped_TEs, ppc2_id$Run],
-    numCore = 3
-)
-
-mmc1_corr <- corrOrthologTE(
-    geneInput = mm_kznfs_tpm[overlapped_kznfs, mmc1_id$Run],
-    teInput = mmTE_tpm[overlapped_TEs, mmc1_id$Run],
-    numCore =3
-)
-
-mmc2_corr <- corrOrthologTE(
-    geneInput = mm_kznfs_tpm[overlapped_kznfs, mmc2_id$Run],
-    teInput = mmTE_tpm[overlapped_TEs, mmc2_id$Run],
-    numCore =3
-)
-
-```
-
 After correlation analysis, we can count the number
-
-```{r}
-# human c1
-c1_a <- hmc1_corr_leaveOne[[1]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-c1_b <- hmc1_corr_leaveOne[[2]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-c1_c <- hmc1_corr_leaveOne[[3]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-c1_d <- hmc1_corr_leaveOne[[4]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-
-c1_overlap <- Reduce(intersect, list(c1_a$pair, c1_b$pair, c1_c$pair, c1_d$pair))
-
-c2_a <- hmc2_corr_leaveOne[[1]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-c2_b <- hmc2_corr_leaveOne[[2]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-c2_c <- hmc2_corr_leaveOne[[3]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-c2_d <- hmc2_corr_leaveOne[[4]] %>% filter(padj<0.01 & abs(coef)>0.4) %>% mutate(pair=paste0(geneName, ":", teName))
-
-c2_overlap <- Reduce(intersect, list(c2_a$pair, c2_b$pair, c2_c$pair, c2_d$pair))
-
-```
 
 ```{r}
 print_sig <- function(df){
@@ -399,4 +570,3 @@ print_sig <- function(df){
     print(paste0("negative: ", neg))
 }
 ```
-
