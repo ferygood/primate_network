@@ -4,6 +4,12 @@ In this script, we draw the cluster 1 and cluster 2 network in human. We also hi
 
 ![](/figures/hmc1_869_age_network.png){width="649"}
 
+![](/figures/networkImageC1/node_connectivity_barplot.jpg){width="597"}
+
+Multivariate regression test (p\<0.001, node_typeTE) by combing the normalized degree and number of nodes.
+
+![](/figures/networkImageC2/node_connectivity_barplot.jpg){width="602"}
+
 ```{r}
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
 ```
@@ -53,34 +59,11 @@ createNetworkFromDataFrames(c1.node, c1.link)
 ```
 
 ```{r}
-dfc1_condor <- c1.link %>%
-    left_join(c1.node, join_by("source"=="id")) %>%
-    left_join(c1.node, join_by("target"=="id"))
 
-# divide condor 1    
-dfc1_condor_g1 <- dfc1_condor %>% filter(group.x=="1" & group.y=="1") #94
-c1.g1.node <- data.frame(
-    id=c(unique(dfc1_condor_g1$source), unique(dfc1_condor_g1$target))
-)
+```
 
-c1.g1.link <- dfc1_condor_g1[,c(1:4)]    
-createNetworkFromDataFrames(c1.g1.node, c1.g1.link)
+```{r}
 
-# divide condor 3 and 5
-create_condor_network <- function(df, n_condor){
-    df_subcondor <- df %>% filter(group.x==n_condor & group.y==n_condor) #94
-    node <- data.frame(
-        id=c(unique(df_subcondor$source), unique(df_subcondor$target))
-    )
-    
-    link <- df_subcondor[,c(1:4)]    
-    createNetworkFromDataFrames(node, link)
-}
-
-create_condor_network(dfc1_condor, 2)
-create_condor_network(dfc1_condor, 3)
-create_condor_network(dfc1_condor, 4)
-create_condor_network(dfc1_condor, 5)
 ```
 
 ```{r}
@@ -155,9 +138,20 @@ c1_connect_count <- c1_connect %>%
     group_by(node_type, connectivity) %>%
     summarise(count=n())
 
-g_c1_connect <- ggplot(c1_connect_count, aes(x=connectivity, y=count, fill=node_type)) +
+# because it is bipartite network, we need to normalized by KRAB-ZNF count and TE count
+c1_k_num <- unique(hm_c1_sig$geneName) #101
+c1_t_num <- unique(hm_c1_sig$teName) #253
+
+c1_connect_count_normalize <- c1_connect_count %>%
+    mutate(norm_degree = ifelse(node_type=="KRAB-ZNF", connectivity*1000/253, connectivity*1000/101))
+
+# Perform multivariate regression
+multivar_model <- lm(cbind(norm_degree, count) ~ node_type, data = c1_connect_count_normalize)
+summary(multivar_model) #0.0002916 significant
+
+g_c1_connect <- ggplot(c1_connect_count_normalize, aes(x=count, y=norm_degree, fill=node_type)) +
     geom_bar(stat="identity", position="dodge") +
-    labs(x = "Connectivity", y="Number of nodes") +
+    labs(x = "Number of nodes", y="Normalized Degree") +
     scale_fill_manual(values = c("KRAB-ZNF"="#C994C7", "TE"="#7BCCC4")) +
     theme_bw()
 
@@ -198,5 +192,54 @@ colnames(c2.node)[2] <- "group"
 c2.node$group <- as.character(c2.node$group)
 
 createNetworkFromDataFrames(c2.node, c2.link)
+
+```
+
+```{r}
+dfc2_condor <- c2.link %>%
+    left_join(c2.node, join_by("source"=="id")) %>%
+    left_join(c2.node, join_by("target"=="id"))
+
+# example using create_condor_network function to extract subnetwork
+create_condor_network(dfc2_condor, 2)
+create_condor_network(dfc2_condor, 3)
+create_condor_network(dfc2_condor, 5)
+create_condor_network(dfc2_condor, 12)
+```
+
+```{r}
+dfc2_condor_preprocess <- dfc2_condor %>%
+    mutate(link_class = paste0(coefficnet, "_", age)) %>%
+    group_by(group.x, group.y, link_class) %>%
+    summarise(count = n())
+
+# cluster 2
+adjmatrix_c2 <- table(dfc2_condor[,c(1,2)])
+c2_connect <- calculate_bipartite_connectivity(adjmatrix_c2, 5)
+
+c2_connect_count <- c2_connect %>% 
+    group_by(node_type, connectivity) %>%
+    summarise(count=n())
+
+# because it is bipartite network, we need to normalized by KRAB-ZNF count and TE count
+c2_k_num <- unique(hm_c2_sig$geneName) #66
+c2_t_num <- unique(hm_c2_sig$teName) #181
+
+c2_connect_count_normalize <- c2_connect_count %>%
+    mutate(norm_degree = ifelse(node_type=="KRAB-ZNF", connectivity*1000/66, connectivity*1000/181))
+
+# Perform multivariate regression
+multivar_model <- lm(cbind(norm_degree, count) ~ node_type, data = c2_connect_count_normalize)
+summary(multivar_model) #0.00461 significant
+
+g_c2_connect <- ggplot(c2_connect_count_normalize, aes(x=count, y=norm_degree, fill=node_type)) +
+    geom_bar(stat="identity", position="dodge") +
+    labs(x = "Number of nodes", y="Normalized Degree") +
+    scale_fill_manual(values = c("KRAB-ZNF"="#C994C7", "TE"="#7BCCC4")) +
+    theme_bw()
+
+ggsave(g_c2_connect, file="../figures/networkImageC2/node_connectivity_barplot.jpg", 
+       dpi=400,width=4,height=2.5)
+
 
 ```
