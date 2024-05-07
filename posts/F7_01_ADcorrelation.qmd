@@ -21,6 +21,8 @@ library(twice)
 library(dplyr)
 library(netZooR)
 library(RCy3)
+
+data("hg19rmsk_info")
 ```
 
 Load data
@@ -128,7 +130,7 @@ createNetworkFromDataFrames(tcx.node, tcx.link)
 
 ```
 
-Based on the upsetplot, we try to see what happened to the same pair of TE:KRAB-ZNF in different condition group of data. First, let's see some correlation that only appear in one of the condition. 
+Based on the upsetplot, we try to see what happened to the same pair of TE:KRAB-ZNF in different condition group of data. First, let's see some correlation that only appear in one of the condition.
 
 ```{r}
 tcx_ad_raw <- mayoTEKRABber$tcxADCorr %>%
@@ -138,7 +140,6 @@ tcx_ad_raw <- mayoTEKRABber$tcxADCorr %>%
 
 # only one overlapped opposite L1MA6:ZNF211 (control: -0.73 and AD: 0.025)
 ```
-
 
 Summary:
 
@@ -263,5 +264,26 @@ ggsave(g3, file="../figures/teFamily_distribution_mayo.jpg",
 g_merge_all <- ggarrange(g3, g1, g2, nrow=3)
 ggsave(g_merge_all, file="../figures/tcx21_network_barplot_scatterplot.jpg", 
        dpi=200, width=6, height=9)
+
+```
+
+Check if 21 correlations existed in NHPs
+
+```{r}
+control_pair <- tcx_control_specific$pair
+
+df_tcx_control_specific <- tcx_control_specific %>%
+    mutate(group=ifelse(coef>0, "positive", "negative")) %>%
+    mutate(link = paste0(group,"-",age)) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
+colnames(df_tcx_control_specific)[12] <- "teFamily"
+df_tcx_control_specific <- data.frame(table(df_tcx_control_specific[,c(11,12)]))
+
+g_control_tcx <- ggplot(df_tcx_control_specific, aes(x = link, y = Freq)) +
+    geom_bar(stat = "identity") +
+    facet_wrap(~teFamily, scales = "free") +
+    labs(x = "Link", y = "Frequency", title = "Frequency of Links by teFamily") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```

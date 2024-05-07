@@ -2,12 +2,37 @@
 
 ```{r}
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r}
 # load data
 hmc1 <- read.csv("../tables/hmc1_sig_forNetwork.csv")
+hmc1 <- hmc1 %>% mutate(link = paste0(group,"-",age))
+df_hmc1 <- data.frame(table(hmc1[,c(7,10)]))
+
 hmc2 <- read.csv("../tables/hmc2_sig_forNetwork.csv")
+hmc2 <- hmc2 %>% mutate(link = paste0(group,"-",age))
+df_hmc2 <- data.frame(table(hmc2[,c(7,10)]))
+
+
+gc1 <- ggplot(df_hmc1, aes(x = link, y = Freq)) +
+    geom_bar(stat = "identity") +
+    facet_wrap(~teFamily, scales = "free") +
+    labs(x = "Link", y = "Frequency", title = "Frequency of Links by teFamily") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+gc2 <- ggplot(df_hmc2, aes(x = link, y = Freq)) +
+    geom_bar(stat = "identity") +
+    facet_wrap(~teFamily, scales = "free") +
+    labs(x = "Link", y = "Frequency", title = "Frequency of Links by teFamily") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(df_hmc1, aes(x=link, =Freq)) +
+    geom_bar()
 ```
 
 Q: how many links and nodes in the network?

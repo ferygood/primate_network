@@ -369,6 +369,16 @@ print_sig <- function(df){
     print(paste0("positive: ", pos))
     print(paste0("negative: ", neg))
 }
+
+print_unique_len <- function(df){
+    df_sig <- df %>% filter(padj<0.01 & abs(coef)>0.4)
+    num_g <- length(unique(df_sig$geneName))
+    num_t <- length(unique(df_sig$teName))
+    
+    print(paste0("krab-znf unique count: ", num_g))
+    print(paste0("te unique count: ", num_t))
+    
+}
 ```
 
 Finally, we use upsteplot to see their overlap:
@@ -449,6 +459,31 @@ u_pbd_c2 <- UpSet(m_pbd_c2, comb_order=order(-comb_size(m_pbd_c2)),
               top_annotation=upset_top_annotation(m_pbd_c2, add_numbers=TRUE))
 print(u_pbd_c2)
 dev.off()
+```
+
+Check the number of correlations and unique KRAB-ZNFs unique TEs with all four human sample
+
+```{r}
+human_cor_all4 <- function(dfgene, dfte, idlist){
+    
+       gene <- dfgene[overlapped_kznfs, idlist$Run]
+       te <- dfte[overlapped_TEs, idlist$Run]
+       
+       corr <- corrOrthologTE(
+           geneInput = gene,
+           teInput = te,
+           numCore = 3
+       )
+       
+       corr
+}
+
+hmc1_corr_all4 <- human_cor_all4(kznfs_tpm, hmTE_tpm, hmc1_id)
+hmc2_corr_all4 <- human_cor_all4(kznfs_tpm, hmTE_tpm, hmc2_id)
+print_sig(hmc1_corr_all4)
+print_unique_len(hmc1_corr_all4)
+print_sig(hmc2_corr_all4)
+print_unique_len(hmc2_corr_all4)
 ```
 
 ```{r}
