@@ -14,7 +14,7 @@ Multivariate regression test (p\<0.001, node_typeTE) by combing the normalized d
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, eval=FALSE)
 ```
 
-```{r eval=FALSE}
+```{r eval=FALSE, message=FALSE}
 library(dplyr)
 library(RCy3)
 library(netZooR)
@@ -60,6 +60,7 @@ c1.node$group <- as.character(c1.node$group)
 
 createNetworkFromDataFrames(c1.node, c1.link)
 ```
+
 ```{r}
 dfc1_condor <- c1.link %>%
     left_join(c1.node, join_by("source"=="id")) %>%
@@ -73,7 +74,6 @@ c1.g1.node <- data.frame(
 c1.g1.link <- dfc1_condor_g1[,c(1:4)]    
 createNetworkFromDataFrames(c1.g1.node, c1.g1.link)
 ```
-
 
 ```{r}
 # divide condor 3 and 5
@@ -297,7 +297,8 @@ saveRDS(c1c2_condor_table, file="../data/c1c2_condor_table.rds")
 condorc1c2 <- readRDS("../data/c1c2_condor_table.rds")
 ```
 
-group data
+## create heatmap
+
 ```{r}
 c1_condor_group <- condorc1c2$c1_condor %>%
     select(c(7,8)) %>%
@@ -317,6 +318,9 @@ modified_c1 <- c1_condor_group %>%
 
 matrix_c1 <- as.matrix(modified_c1[,-1])
 rownames(matrix_c1) <- modified_c1$family_id
+colnames(matrix_c1) <- c("N-O", "N-Y", "P-Y", "P-O")
+
+col_fun = colorRamp2(c(0, 3, 3.5, 6), c("#F7EACE", "#F3CDBC", "#AC8583", "#D599CB"))
 
 gc1 <- Heatmap(log(matrix_c1[,c(4,3,1,2)]), name="log correlations", 
         width=ncol(matrix_c1)*unit(6, "mm"),
@@ -324,8 +328,11 @@ gc1 <- Heatmap(log(matrix_c1[,c(4,3,1,2)]), name="log correlations",
         cluster_columns = F,
         cluster_rows = F,
         rect_gp = gpar(col="black", lwd=0.8),
-        na_col="grey",
-        col=col_fun1)
+        na_col="white",
+        col = col_fun)
+
+tidyHeatmap::save_pdf(gc1, "../figures/networkImageC1/TEfamilyHeatmap.pdf", 
+                      width=5, height=5, units=c("in"))
 
 # cluster 2
 modified_c2 <- c2_condor_group %>%
@@ -333,6 +340,7 @@ modified_c2 <- c2_condor_group %>%
 
 matrix_c2 <- as.matrix(modified_c2[,-1])
 rownames(matrix_c2) <- modified_c2$family_id
+colnames(matrix_c2) <- c("N-O", "N-Y", "P-Y", "P-O")
 
 gc2 <- Heatmap(log(matrix_c2[,c(4,3,1,2)]), name="log correlations", 
         width=ncol(matrix_c2)*unit(6, "mm"),
@@ -340,11 +348,28 @@ gc2 <- Heatmap(log(matrix_c2[,c(4,3,1,2)]), name="log correlations",
         cluster_columns = F,
         cluster_rows = F,
         rect_gp = gpar(col="black", lwd=0.8),
-        na_col="grey")
+        na_col="white", 
+        col = col_fun)
 
+tidyHeatmap::save_pdf(gc2, "../figures/networkImageC2/TEfamilyHeatmap.pdf", 
+                      width=5, height=5, units=c("in"))
 ```
+
 Create barplot
+
 ```{r}
+c1_condor_group <- c1_condor_group %>%
+    mutate(link = case_when(
+        link == "negative-old" ~ "N-O",
+        link == "negative-young" ~ "N-Y",
+        link == "positive-old" ~ "P-O",
+        link == "positive-young" ~ "P-Y",
+        TRUE ~ link  # This keeps the original value if no conditions are met
+    ))
+
+c1_condor_group$link <- factor(c1_condor_group$link, 
+                               levels=c("P-O", "P-Y", "N-O", "N-Y"))
+
 gbarc1 <- ggplot(c1_condor_group, aes(x=link, y=count)) +
     geom_bar(stat = "identity") +
     facet_wrap(~family_id, scales = "free_y") +
@@ -353,6 +378,19 @@ gbarc1 <- ggplot(c1_condor_group, aes(x=link, y=count)) +
     theme(axis.text.x = element_text(angle=70, vjust=0.5))
 
 ggsave(gbarc1, file="../figures/networkImageC1/teFamilyFreqC1.svg")
+ggsave(gbarc1, file="../figures/networkImageC1/teFamilyFreqC1.png")
+
+c2_condor_group <- c2_condor_group %>%
+    mutate(link = case_when(
+        link == "negative-old" ~ "N-O",
+        link == "negative-young" ~ "N-Y",
+        link == "positive-old" ~ "P-O",
+        link == "positive-young" ~ "P-Y",
+        TRUE ~ link  # This keeps the original value if no conditions are met
+    ))
+
+c2_condor_group$link <- factor(c2_condor_group$link, 
+                               levels=c("P-O", "P-Y", "N-O", "N-Y"))
 
 gbarc2 <- ggplot(c2_condor_group, aes(x=link, y=count)) +
     geom_bar(stat = "identity") +
@@ -362,7 +400,8 @@ gbarc2 <- ggplot(c2_condor_group, aes(x=link, y=count)) +
     theme(axis.text.x = element_text(angle=70, vjust=0.5))
 
 ggsave(gbarc2, file="../figures/networkImageC2/teFamilyFreqC2.svg")
-    
+ggsave(gbarc2, file="../figures/networkImageC2/teFamilyFreqC2.png")
+  
 ```
 
 ```{r}
@@ -447,6 +486,7 @@ write.csv(p_values_dfc2, file = "../figures/networkImageC2/chisq_c2_teFamily.csv
 ```
 
 Let see how about KRAB-ZNFs
+
 ```{r}
 znfc1 <- condorc1c2$c1_condor %>%
     group_by(source, link) %>%
@@ -458,4 +498,3 @@ single_count <- names(source_count[source_count==2])
 
 znfc1_filter <- znfc1 %>% filter(source %in% single_count)
 ```
-
