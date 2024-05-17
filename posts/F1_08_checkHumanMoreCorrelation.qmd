@@ -408,7 +408,7 @@ corr_obj <- function(df){
 
 # cluster 1
 hm_cluster1 <- c1_a %>%
-    filter(pair %in% c1_overlap)
+    filter(pair %in% c1_overlap) # save human cluster1 using this
 hm_cluster1 <- corr_obj(hm_cluster1)
 
 chimp_cluster1 <- corr_obj(ptc1_corr)
@@ -486,45 +486,62 @@ print_sig(hmc2_corr_all4)
 print_unique_len(hmc2_corr_all4)
 ```
 
+## save object for future reproducing result
+
 ```{r}
-# load data
-hsc1 <- read.csv("../tables/hsC1_corr_sig.csv")
-hsc1_select <- hsc1 %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs)
+# human
+hmc1_corr <- c1_a %>%
+    filter(pair %in% c1_overlap) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-hsc2 <- read.csv("../tables/hsC2_corr_sig.csv")
-hsc2_select <- hsc2 %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs)
+hmc2_corr <- c2_a %>%
+    filter(pair %in% c2_overlap) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-pt_tpm_corr <- readRDS("../../randomGeneSet/correlation_scripts/pt_tpm_corr.rds")
+# chimp
+ptc1_corr <- ptc1_corr %>% 
+    filter(padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
+    
+ptc2_corr <- ptc2_corr %>% 
+    filter(padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-ptc1 <- pt_tpm_corr$pt_c1_corr %>% 
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
-    mutate(pair=paste0(teName, ":", geneName))
+# bonobo
+ppc1_corr <- ppc1_corr %>%
+    filter(padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-ptc2 <- pt_tpm_corr$pt_c2_corr %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
-    mutate(pair=paste0(teName, ":", geneName))
+ppc2_corr <- ppc2_corr %>%
+    filter(padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-pp_tpm_corr <- readRDS("../../randomGeneSet/correlation_scripts/pp_tpm_corr.rds")
+# macaque
+mmc1_corr <- mmc1_corr %>%
+    filter(padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-ppc1 <- pp_tpm_corr$pp_c1_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
-    mutate(pair=paste0(teName, ":", geneName))
+mmc2_corr <- mmc2_corr %>%
+    filter(padj<0.01 & abs(coef)>0.4) %>%
+    mutate(pair = paste0(teName, ":", geneName))
 
-ppc2 <- pp_tpm_corr$pp_c2_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
-    mutate(pair=paste0(teName, ":", geneName))
+pbd_obj <- list(
+    "hmc1_corr"=hm_cluster1,
+    "hmc2_corr"=hm_cluster2,
+    "ptc1_corr"=ptc1_corr,
+    "ptc2_corr"=ptc2_corr,
+    "ppc1_corr"=ppc1_corr,
+    "ppc2_corr"=ppc2_corr,
+    "mmc1_corr"=mmc1_corr,
+    "mmc2_corr"=mmc2_corr
+)
 
-mm_tpm_corr <- readRDS("../../randomGeneSet/correlation_scripts/mm_tpm_corr.rds")
-mmc1 <- mm_tpm_corr$mm_c1_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
-    mutate(pair=paste0(teName, ":", geneName))
+saveRDS(pbd_obj, file="../data/pbd_obj.rds")
+```
 
-mmc2 <- mm_tpm_corr$mm_c2_corr %>% filter(padj<0.01) %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs & padj<0.01 & abs(coef)>0.4) %>%
-    mutate(pair=paste0(teName, ":", geneName))
+## Explore the opposite direction of correlations
 
+```{}
 ```
 
 ## Overlapped with ChIP-exo
@@ -548,50 +565,6 @@ print_chip_result <- function(df) {
 }
 
 
-```
-
-```{r}
-# create a dataframe
-df_c1 <- data.frame(
-    group = rep(c("all", "positive", "negative"), times = 4),
-    species = c(rep("human", 3), rep("chimp", 3), rep("bonobo", 3), rep("macaque", 3)),
-    count = c(169, 134, 35, 10, 10, 0, 198, 39, 159, 1, 1, 0),
-    cluster = rep("cluster1", 12)
-)
-
-df_c2 <- data.frame(
-    group = rep(c("all", "positive", "negative"), times = 4),
-    species = c(rep("human", 3), rep("chimp", 3), rep("bonobo", 3), rep("macaque", 3)),
-    count = c(37, 22, 15, 29, 29, 0, 35, 33, 2, 51, 51, 0),
-    cluster = rep("cluster2", 12)
-)
-
-df_merge <- rbind(df_c1, df_c2)
-df_merge$species <- factor(df_merge$species, levels=c("human", "chimp", "bonobo", "macaque"))
-```
-
-```{r}
-library(ggplot2)
-g <- ggplot(df_merge, aes(x=species, y=count, fill=group)) +
-    geom_bar(stat = "identity", 
-             position = position_dodge(width=0.9), binwidth=20) +
-    scale_fill_manual(values = c("all" = "#999999", "positive" = "#cc3433", "negative" = "#336699")) +
-    xlab("") +
-    ylab("Overlapped Correlation counts") +
-    theme_bw() +
-    facet_wrap(~cluster, ncol=1)
-
-ggsave(g, file="../figures/overlap187kznf836TE_chipexo_bar.jpg", dpi=400, width=4, height=4)
-
-```
-
-For comparing the results with the Mayo Data, we compare the overlapped KRAB-ZNFs and TEs with ChIP-exo, to select a subst
-
-```{r}
-chipexo_PBD <- chipexo %>%
-    filter(geneName %in% overlapped_kznfs & teName %in% overlapped_TEs) #778
-
-write.csv(chipexo_PBD, file="../tables/chipexo_PBD778.csv", row.names = F)
 ```
 
 After correlation analysis, we can count the number
