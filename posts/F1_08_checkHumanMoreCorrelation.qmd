@@ -10,6 +10,7 @@ library(dplyr)
 library(twice)
 library(TEKRABber)
 data("hmKZNFs337") #337 KRAB-ZNFs in human
+data("hg19rmsk_info")
 ```
 
 ```{r}
@@ -525,9 +526,18 @@ mmc2_corr <- mmc2_corr %>%
     filter(padj<0.01 & abs(coef)>0.4) %>%
     mutate(pair = paste0(teName, ":", geneName))
 
+# filter 
+hmc1_corr_all4 <- hmc1_corr_all4 %>%
+    mutate(pair=paste0(teName, ":", geneName)) %>%
+    filter(pair %in% hmc1_corr$pair)
+
+hmc2_corr_all4 <- hmc2_corr_all4 %>%
+    mutate(pair=paste0(teName, ":", geneName)) %>%
+    filter(pair %in% hmc2_corr$pair)
+
 pbd_obj <- list(
-    "hmc1_corr"=hm_cluster1,
-    "hmc2_corr"=hm_cluster2,
+    "hmc1_corr"=hmc1_corr_all4,
+    "hmc2_corr"=hmc2_corr_all4,
     "ptc1_corr"=ptc1_corr,
     "ptc2_corr"=ptc2_corr,
     "ppc1_corr"=ppc1_corr,
@@ -541,8 +551,67 @@ saveRDS(pbd_obj, file="../data/pbd_obj.rds")
 
 ## Explore the opposite direction of correlations
 
-```{}
+Q: what does the opposite looks like?
+
+Q: what are the species specific looks like?
+
+```{r}
+# cluster 1 
+y_kznf <- kznf_infer %>%filter(age=="young")
+
+hs_p <- hmc1_corr_all4 %>% filter(coef>0) %>% mutate(species="Hs")
+pp_n <- ppc1_corr %>% filter(coef<0) %>% mutate(species="Pp")
+
+intersect_hs_pp_276 <- intersect(hs_p$pair, pp_n$pair) #276
+df_276 <- rbind(hs_p[hs_p$pair %in% intersect_hs_pp_276,], 
+                pp_n[pp_n$pair %in% intersect_hs_pp_276,])
+
+hs_p_276 <- hs_p %>% 
+    filter(pair %in% intersect_hs_pp_276) %>%
+    mutate(teAge = ifelse(teName %in% te_infer$NM, "young", "old")) %>%
+    mutate(kznfAge = ifelse(geneName %in% y_kznf$external_gene_name, "young", "old")) %>%
+    mutate(link = ifelse(teAge=="old" & kznfAge=="old", "old", "young")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
 ```
+
+```{r}
+# create a 276 network
+library(RCy3)
+library(netZooR)
+
+c1.276.kznf <- hs_p_276 %>% select(c(1,9)) %>% unique() #15
+colnames(c1.276.kznf) <- c("id", "age")
+c1.276.te <- hs_p_276 %>% select(c(2,8)) %>% unique() #180
+colnames(c1.276.te) <- c("id", "age")
+    
+c1.276.node <- rbind(c1.276.kznf, c1.276.te)
+c1.276.link <- hs_p_276[,c(1,2,3,10)]
+colnames(c1.276.link) <- c("source", "target", "coefficient", "age")
+
+createNetworkFromDataFrames(c1.276.node, c1.276.link)
+```
+
+![](/figures/pbd_network_comparison/hs_pp_276.png){width="741"}
+
+Next, we see what is the human positive specific and negative specific one:
+
+```{r}
+library(ggplot2)
+hs_pp_276_teFamily <- data.frame(t(table(hs_p_276[,c(10, 11)])))
+colnames(hs_pp_276_teFamily) <- c("TE_family", "link", "Count")
+
+g_hs_pp_276 <- ggplot(hs_pp_276_teFamily, aes(x=TE_family, y=Count, fill=link)) +
+    geom_bar(stat="identity") +
+    scale_fill_manual(values = c("old" = "#318ce7", "young" = "#f6b26b")) +  
+    coord_flip() +
+    theme_bw()
+
+ggsave(g_hs_pp_276, file="../figures/pbd_network_comparison/hs_pp_276_TEfamily.jpg", width=4, height=5)
+ggsave(g_hs_pp_276, file="../figures/pbd_network_comparison/hs_pp_276_TEfamily.svg", width=4, height=5)
+```
+
+![](/figures/pbd_network_comparison/hs_pp_276_TEfamily.jpg){width="530"}
 
 ## Overlapped with ChIP-exo
 
