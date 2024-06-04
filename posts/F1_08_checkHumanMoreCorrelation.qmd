@@ -9,6 +9,9 @@ leave-one-out to get the overlap of correlation, only select the orthologs and T
 library(dplyr)
 library(twice)
 library(TEKRABber)
+library(ggplot2)
+library(viridis)
+
 data("hmKZNFs337") #337 KRAB-ZNFs in human
 data("hg19rmsk_info")
 ```
@@ -173,6 +176,8 @@ overlapped_kznfs <- Reduce(intersect, list(h_kznf, pt_kznf, pp_kznf, mm_kznf)) #
 overlapped_TEs <- Reduce(intersect, list(rownames(hmTE_tpm), rownames(ptTE_tpm), 
                                          rownames(ppTE_tpm), rownames(mmTE_tpm))) #836 overlapped TEs
 ```
+
+Among the selected 178 KRAB-ZNFs and 836 TEs, there are 23 young KRAB-ZNFs and 155 old KRAB-ZNFs. For TEs, there are 120 young TEs, and 716 old TEs.
 
 ## Calculate correlation based on these overlapped KRAB-ZNFs and TEs
 
@@ -553,8 +558,6 @@ saveRDS(pbd_obj, file="../data/pbd_obj.rds")
 
 Q: what does the opposite looks like?
 
-Q: what are the species specific looks like?
-
 ```{r}
 # cluster 1 
 y_kznf <- kznf_infer %>%filter(age=="young")
@@ -613,37 +616,63 @@ ggsave(g_hs_pp_276, file="../figures/pbd_network_comparison/hs_pp_276_TEfamily.s
 
 ![](/figures/pbd_network_comparison/hs_pp_276_TEfamily.jpg){width="530"}
 
-## Overlapped with ChIP-exo
+Q: what are the species specific looks like?
 
-```{r}
-chipexo <- read.csv("../tables/kznfs_TEs_ChIP_exo_modified.csv")
-chipexo <- chipexo %>%
-    mutate(pair=paste0(teName, ":", geneName))
+```{r read files and select human specific in cluster 1, echo=FALSE}
+pbd_obj <- readRDS("../data/pbd_obj.rds")
+y_kznf <- kznf_infer %>% filter(age=="young")
 
-c1_hm_335 <- read.csv("../tables/c1_confirm_correlation.csv")
-c2_hm_64 <- read.csv("../tables/c2_confirm_correlation.csv")
+hsc1 <- pbd_obj$hmc1_corr %>% 
+    filter(!pair %in% pbd_obj$ptc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$ppc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$mmc1_corr$pair) %>%
+    mutate(te_age = ifelse(teName %in% te_infer$teName, "y", "o")) %>%
+    mutate(kznf_age = ifelse(geneName %in% kznf_infer$external_gene_name, "y", "o")) %>%
+    mutate(link_age = ifelse(te_age=="o" & kznf_age=="o", "o", "y")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+    
+hsc1_specific_p <- hsc1 %>% filter(coef > 0)
+hsc1_specific_n <- hsc1 %>% filter(coef < 0)
+```
 
-# filter with chipexo
-print_chip_result <- function(df) {
-    df_filter <- df %>% filter(pair %in% chipexo$pair)
-    neg <- df_filter %>% filter(coef < 0)
-    pos <- df_filter %>% filter(coef > 0)
-    print(paste0("negative: ", nrow(neg)))
-    print(paste0("positive: ", nrow(pos)))
-        
-}
+From the above result, we first found that all the links are young links, and it is contributed from the young KRAB-ZNFs correlated with old TEs. This results might point out that human KRAB-ZNFs have evolved in recognizing TEs specifically.
+
+```{r create input data for dotplot}
+df_hs_p <- table(hsc1_specific_p$family_id, hsc1_specific_p$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "positive")
+
+df_hs_n <- table(hsc1_specific_n$family_id, hsc1_specific_n$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "negative")
+
+df_hs_merge <- rbind(df_hs_p, df_hs_n)
+colnames(df_hs_merge) <- c("teFamily", "age", "count", "coef")
+
+# normalize using the number of TE family
+df_te <- hg19rmsk_info %>% 
+    filter(gene_id %in% overlapped_TEs)
+
+df_teFamily <- table(df_te$family_id) %>%
+    data.frame()
+
+# merge with the raw counts and family
+df_hs_merge_norm <- df_hs_merge %>%
+    left_join(df_teFamily, join_by(teFamily==Var1)) %>%
+    mutate(norm_count = log(count / Freq * 100)) %>%
+    arrange(desc(norm_count))
+
 
 
 ```
 
-After correlation analysis, we can count the number
+Then we try to use dotplot to visualize the results
 
 ```{r}
-print_sig <- function(df){
-    pos <- df %>% filter(padj<0.01 & coef>0.4) %>% nrow()
-    neg <- df %>% filter(padj<0.01 & coef< -0.4) %>% nrow()
+ggplot(df_hs_merge_norm, aes(x=coef, y=teFamily)) +
+    geom_point(aes(color=norm_count, size=norm_count, alpha=0.7)) +
+    scale_colour_gradient(low="lightblue", high="red") +
+    theme_bw()
+           
     
-    print(paste0("positive: ", pos))
-    print(paste0("negative: ", neg))
-}
 ```
