@@ -5,7 +5,7 @@ leave-one-out to get the overlap of correlation, only select the orthologs and T
 1.  Create a metadata to select human sample (leave-one-out)
 2.  Create a function to execute correlation results
 
-```{r}
+```{r message=FALSE}
 library(dplyr)
 library(twice)
 library(TEKRABber)
@@ -616,6 +616,8 @@ ggsave(g_hs_pp_276, file="../figures/pbd_network_comparison/hs_pp_276_TEfamily.s
 
 ![](/figures/pbd_network_comparison/hs_pp_276_TEfamily.jpg){width="530"}
 
+## Species-specific correlation counts
+
 Q: what are the species specific looks like?
 
 ```{r read files and select human specific in cluster 1, echo=FALSE}
@@ -668,11 +670,211 @@ df_hs_merge_norm <- df_hs_merge %>%
 
 Then we try to use dotplot to visualize the results
 
-```{r}
-ggplot(df_hs_merge_norm, aes(x=coef, y=teFamily)) +
-    geom_point(aes(color=norm_count, size=norm_count, alpha=0.7)) +
-    scale_colour_gradient(low="lightblue", high="red") +
+```{r visualize point plot}
+g_h_specific <- ggplot(df_hs_merge_norm, aes(x=coef, y=teFamily)) +
+    geom_point(aes(color=norm_count, size=norm_count, alpha=0.85)) +
+    scale_colour_gradient(low="#c3d0d1", high="#6b8b8e") +
+    scale_alpha(guide = 'none') +
+    labs(x="", y="") +
+    scale_x_discrete(labels=c("y-negative", "y-positive")) +
+    ggtitle("Human specific correlation counts in TE family") +
     theme_bw()
            
+ggsave(g_h_specific, file="../figures/pbd_hs_specific_link_TEfamilyCount.jpg", dpi=400, width=4)
+```
+
+### NHP-specific link
+
+```{r select NHP specific link and see their properties}
+ppc1 <- pbd_obj$ppc1_corr %>% 
+    filter(!pair %in% pbd_obj$hmc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$ptc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$mmc1_corr$pair) %>%
+    mutate(te_age = ifelse(teName %in% te_infer$teName, "y", "o")) %>%
+    mutate(kznf_age = ifelse(geneName %in% kznf_infer$external_gene_name, "y", "o")) %>%
+    mutate(link_age = ifelse(te_age=="o" & kznf_age=="o", "o", "y")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
+ppc1_specific_p <- ppc1 %>% filter(coef > 0) #3386
+ppc1_specific_n <- ppc1 %>% filter(coef < 0) #3297
+
+# separate positive and negative link
+df_pp_p <- table(ppc1_specific_p$family_id, ppc1_specific_p$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "positive")
+
+df_pp_n <- table(ppc1_specific_n$family_id, ppc1_specific_n$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "negative")
+
+df_pp_merge <- rbind(df_pp_p, df_pp_n)
+colnames(df_pp_merge) <- c("teFamily", "age", "count", "coef")
+
+
+# merge with the raw counts and family
+df_pp_merge_norm <- df_pp_merge %>%
+    left_join(df_teFamily, join_by(teFamily==Var1)) %>%
+    mutate(norm_count = log(count / Freq * 100)) %>%
+    arrange(desc(norm_count))
+```
+
+Visualize the result of bonobo specific one
+
+```{r}
+g_p_specific <- ggplot(df_pp_merge_norm, aes(x=coef, y=teFamily)) +
+    geom_point(aes(color=norm_count, size=norm_count, alpha=0.85)) +
+    scale_colour_gradient(low="#c3d0d1", high="#6b8b8e") +
+    scale_alpha(guide = 'none') +
+    labs(x="", y="") +
+    scale_x_discrete(labels=c("y-negative", "y-positive")) +
+    ggtitle("Bonobo specific correlation counts in TE family") +
+    theme_bw()
+
+ggsave(g_p_specific, file="../figures/pbd_pp_specific_link_TEfamilyCount.jpg", dpi=400, width=4)
+```
+
+From the results, we could also find that bonobo has similar pattern as human, for example, all the correlation are young links and they are contributed from the young KRAB-ZNFs with old TEs.
+
+Next, we go for the chimpanzee and macaque
+
+```{r}
+ptc1 <- pbd_obj$ptc1_corr %>% 
+    filter(!pair %in% pbd_obj$hmc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$ppc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$mmc1_corr$pair) %>%
+    mutate(te_age = ifelse(teName %in% te_infer$teName, "y", "o")) %>%
+    mutate(kznf_age = ifelse(geneName %in% kznf_infer$external_gene_name, "y", "o")) %>%
+    mutate(link_age = ifelse(te_age=="o" & kznf_age=="o", "o", "y")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
+ptc1_specific_p <- ptc1 %>% filter(coef > 0) #20
+ptc1_specific_n <- ptc1 %>% filter(coef < 0) #18
+
+# separate positive and negative link
+df_pt_p <- table(ptc1_specific_p$family_id, ptc1_specific_p$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "positive")
+
+df_pt_n <- table(ptc1_specific_n$family_id, ptc1_specific_n$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "negative")
+
+df_pt_merge <- rbind(df_pt_p, df_pt_n)
+colnames(df_pt_merge) <- c("teFamily", "age", "count", "coef")
+
+
+# merge with the raw counts and family
+df_pt_merge_norm <- df_pt_merge %>%
+    left_join(df_teFamily, join_by(teFamily==Var1)) %>%
+    mutate(norm_count = log(count / Freq * 100)) %>%
+    arrange(desc(norm_count))
+
+# visualization
+g_pt_specific <- ggplot(df_pt_merge_norm, aes(x=coef, y=teFamily)) +
+    geom_point(aes(color=norm_count, size=norm_count, alpha=0.85)) +
+    scale_colour_gradient(low="#c3d0d1", high="#6b8b8e") +
+    scale_alpha(guide = 'none') +
+    labs(x="", y="") +
+    scale_x_discrete(labels=c("y-negative", "y-positive")) +
+    ggtitle("Chimpanzee-specific correlation counts in TE family") +
+    theme_bw()
+
+ggsave(g_pt_specific, file="../figures/pbd_pt_specific_link_TEfamilyCount.jpg", dpi=400, width=4)
+```
+
+For macaque:
+
+```{r}
+mmc1 <- pbd_obj$mmc1_corr %>% 
+    filter(!pair %in% pbd_obj$hmc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$ppc1_corr$pair) %>%
+    filter(!pair %in% pbd_obj$ptc1_corr$pair) %>%
+    mutate(te_age = ifelse(teName %in% te_infer$teName, "y", "o")) %>%
+    mutate(kznf_age = ifelse(geneName %in% kznf_infer$external_gene_name, "y", "o")) %>%
+    mutate(link_age = ifelse(te_age=="o" & kznf_age=="o", "o", "y")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
+mmc1_specific_p <- mmc1 %>% filter(coef > 0) #3
+mmc1_specific_n <- mmc1 %>% filter(coef < 0) #1
+
+# separate positive and negative link
+df_mm_p <- table(mmc1_specific_p$family_id, mmc1_specific_p$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "positive")
+
+df_mm_n <- table(mmc1_specific_n$family_id, mmc1_specific_n$link_age) %>%
+    data.frame() %>%
+    mutate(coef = "negative")
+
+df_mm_merge <- rbind(df_mm_p, df_mm_n)
+colnames(df_mm_merge) <- c("teFamily", "age", "count", "coef")
+
+
+# merge with the raw counts and family
+df_mm_merge_norm <- df_mm_merge %>%
+    left_join(df_teFamily, join_by(teFamily==Var1)) %>%
+    mutate(norm_count = log(count / Freq * 100)) %>%
+    arrange(desc(norm_count))
+
+# visualization
+g_mm_specific <- ggplot(df_mm_merge_norm, aes(x=coef, y=teFamily)) +
+    geom_point(aes(color=norm_count, size=norm_count, alpha=0.85)) +
+    scale_colour_gradient(low="#c3d0d1", high="#6b8b8e") +
+    scale_alpha(guide = 'none') +
+    labs(x="", y="") +
+    scale_x_discrete(labels=c("y-negative", "y-positive")) +
+    ggtitle("macaque-specific correlation counts in TE family") +
+    theme_bw()
+
+ggsave(g_mm_specific, file="../figures/pbd_mm_specific_link_TEfamilyCount.jpg", dpi=400, width=4)
+```
+
+## Last thing, we check the opposite correlation between human negative and bonobo positive
+
+```{r}
+hsc1_n <- pbd_obj$hmc1_corr %>% filter(coef<0)
+ppc1_p <- pbd_obj$ppc1_corr %>% filter(coef>0)
+
+df_hs_pp_2 <- hsc1_n %>% filter(pair %in% ppc1_p$pair) #17
+
+df_hs_pp_2 <- df_hs_pp_2 %>%
+    mutate(te_age = ifelse(teName %in% te_infer$teName, "y", "o")) %>%
+    mutate(kznf_age = ifelse(geneName %in% kznf_infer$external_gene_name, "y", "o")) %>%
+    mutate(link_age = ifelse(te_age=="o" & kznf_age=="o", "o", "y")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
+
+```
+
+Create input for this 17 network
+
+```{r}
+c1.17.kznf <- df_hs_pp_2 %>% select(c(1,8)) %>% unique() #4
+colnames(c1.17.kznf) <- c("id", "age")
+c1.17.te <- df_hs_pp_2 %>% select(c(2,7)) %>% unique() #13
+colnames(c1.17.te) <- c("id", "age")
     
+c1.17.node <- rbind(c1.17.kznf, c1.17.te)
+
+
+c1.17.link <- df_hs_pp_2[,c(1,2,3,9)]
+colnames(c1.17.link) <- c("source", "target", "coefficient", "age")
+
+createNetworkFromDataFrames(c1.17.node, c1.17.link)
+```
+
+![](/figures/pbd_network_comparison/hs_pp_17.png){width="579"}
+
+```{r}
+hs_pp_17_teFamily <- data.frame(t(table(df_hs_pp_2[,c(10, 9)])))
+colnames(hs_pp_17_teFamily) <- c("link", "TE_family", "Count")
+
+g_hs_pp_17 <- ggplot(hs_pp_17_teFamily, aes(x=TE_family, y=Count, fill=link)) +
+    geom_bar(stat="identity") +
+    scale_fill_manual(values = c("o" = "#318ce7", "y" = "#f6b26b")) +  
+    coord_flip() +
+    theme_bw()
+
+ggsave(g_hs_pp_17, file="../figures/pbd_network_comparison/hs_pp_17_TEfamily.jpg", width=4, height=5)
+ggsave(g_hs_pp_17, file="../figures/pbd_network_comparison/hs_pp_17_TEfamily.svg", width=4, height=5)
 ```
