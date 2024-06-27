@@ -301,12 +301,12 @@ condorc1c2 <- readRDS("../data/c1c2_condor_table.rds")
 
 ```{r}
 c1_condor_group <- condorc1c2$c1_condor %>%
-    select(c(7,8)) %>%
+    dplyr::select(c(7,8)) %>%
     group_by(family_id, link) %>%
     summarise(count=n())
 
 c2_condor_group <- condorc1c2$c2_condor %>%
-    select(c(7,8)) %>%
+    dplyr::select(c(7,8)) %>%
     group_by(family_id, link) %>%
     summarise(count=n())
 ```

@@ -17,6 +17,9 @@ library(TEKRABber)
 # load 335 links
 c1_335 <- read.csv("../tables/c1_confirm_correlation.csv")
 
+# load NHP results
+load("~/github/primate_network/data/c1c2_NHPs.RData")
+
 # load correlation tables
 HmC1 <- read.csv("../tables/hsC1_corr_sig.csv")
 HmC1 <- HmC1 %>% 
@@ -63,7 +66,7 @@ c1_hm_diff_node <- data.frame(
     id=c(unique(Hm_diff$geneName), unique(Hm_diff$teName))
 )
 
-c1_hm_diff_link <- Hm_diff %>% select(c(1,2,3,7))
+c1_hm_diff_link <- Hm_diff %>% dplyr::select(c(1,2,3,7))
 colnames(c1_hm_diff_link) <- c("source", "target", "coefficient", "age")
 
 createNetworkFromDataFrames(c1_hm_diff_node, c1_hm_diff_link)
@@ -73,7 +76,7 @@ c1_HmPt_diff_node <- data.frame(
     id=c(unique(Hm_Pt_diff$geneName), unique(Hm_Pt_diff$teName))
 )
 
-c1_HmPt_diff_link <- Hm_Pt_diff %>% select(c(1,2,3,8,7,9))
+c1_HmPt_diff_link <- Hm_Pt_diff %>% dplyr::select(c(1,2,3,8,7,9))
 colnames(c1_HmPt_diff_link) <- c("source", "target", "coef_h", "coef_p", "age", "sign")
 
 createNetworkFromDataFrames(c1_HmPt_diff_node, c1_HmPt_diff_link)
@@ -83,7 +86,7 @@ c1_HmPp_diff_node <- data.frame(
     id=c(unique(Hm_Pp_diff$geneName), unique(Hm_Pp_diff$teName))
 )
 
-c1_HmPp_diff_link <- Hm_Pp_diff %>% select(c(1,2,3,8,7,9))
+c1_HmPp_diff_link <- Hm_Pp_diff %>% dplyr::select(c(1,2,3,8,7,9))
 colnames(c1_HmPp_diff_link) <- c("source", "target", "coef_h", "coef_p", "age", "sign")
 
 createNetworkFromDataFrames(c1_HmPp_diff_node, c1_HmPp_diff_link)
@@ -93,7 +96,7 @@ c1_HmMm_diff_node <- data.frame(
     id=c(unique(Hm_Mm_diff$geneName), unique(Hm_Mm_diff$teName))
 )
 
-c1_HmMm_diff_link <- Hm_Mm_diff %>% select(c(1,2,3,8,7,9))
+c1_HmMm_diff_link <- Hm_Mm_diff %>% dplyr::select(c(1,2,3,8,7,9))
 colnames(c1_HmMm_diff_link) <- c("source", "target", "coef_h", "coef_p", "age", "sign")
 
 createNetworkFromDataFrames(c1_HmMm_diff_node, c1_HmMm_diff_link)
@@ -272,4 +275,3 @@ Hm_diff <- HmC2_age %>%
 
 write.csv(Hm_diff, file="../tables/c2_35_Hm_DiffNHP.csv", row.names=F)
 ```
-
