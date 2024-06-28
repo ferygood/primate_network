@@ -355,6 +355,42 @@ tidyHeatmap::save_pdf(gc2, "../figures/networkImageC2/TEfamilyHeatmap.pdf",
                       width=5, height=5, units=c("in"))
 ```
 
+## Use Chi-squared test to see their distribution
+
+We use cluster 1 as an example
+
+```{r}
+matrix_c1[is.na(matrix_c1)] <- 0
+
+chisq_test <- function(row_index, matrix_data) {
+    row_data <- matrix_data[row_index, ]
+    other_data <- matrix_data[-row_index, ]
+    
+    # Sum the other rows to get expected counts
+    expected_counts <- colSums(other_data)
+    
+    # Combine row_data and expected_counts into a matrix
+    observed <- rbind(row_data, expected_counts)
+    
+    # Perform the Chi-squared test
+    test_result <- chisq.test(observed)
+    
+    return(test_result$p.value)
+}
+
+# Apply the test for each row
+chisq_p_values <- sapply(1:nrow(matrix_c1), chisq_test, matrix_data = matrix_c1)
+
+# Combine row names with p-values
+chisq_result <- data.frame(
+    row_names = rownames(matrix_c1),
+    p_value = chisq_p_values
+)
+
+# Print the result
+print(chisq_result)
+```
+
 Create barplot
 
 ```{r}
