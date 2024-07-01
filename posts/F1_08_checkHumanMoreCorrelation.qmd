@@ -554,6 +554,12 @@ pbd_obj <- list(
 saveRDS(pbd_obj, file="../data/pbd_obj.rds")
 ```
 
+Read the object
+
+```{r}
+pbd_obj <- readRDS("../data/pbd_obj.rds")
+```
+
 ## Explore the opposite direction of correlations
 
 Q: what does the opposite looks like?
@@ -877,4 +883,35 @@ g_hs_pp_17 <- ggplot(hs_pp_17_teFamily, aes(x=TE_family, y=Count, fill=link)) +
 
 ggsave(g_hs_pp_17, file="../figures/pbd_network_comparison/hs_pp_17_TEfamily.jpg", width=4, height=5)
 ggsave(g_hs_pp_17, file="../figures/pbd_network_comparison/hs_pp_17_TEfamily.svg", width=4, height=5)
+```
+
+## Explore the 276 overlap TE:KRAB-ZNF, what are their signs in chimpanzee and macaque
+
+```{r}
+# in cluster 1
+hc1 <- pbd_obj$hmc1_corr
+ppc1 <- pbd_obj$ppc1_corr
+
+ppc1_neg <- ppc1 %>% filter(coef<0)
+
+corr_276_list <- hc1 %>% 
+    filter(pair %in% ppc1_neg$pair) %>%
+    filter(padj<0.01 & coef>0)
+
+corr_276_list <- corr_276_list %>% 
+    mutate(teAge = ifelse(teName %in% te_infer$NM, "young", "old")) %>%
+    mutate(kznfAge = ifelse(geneName %in% y_kznf$external_gene_name, "young", "old")) %>%
+    mutate(link = ifelse(teAge=="old" & kznfAge=="old", "old", "young")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id))
+
+# load chimpanzee and macaque, we want the unfilter data
+load("~/github/primate_network/data/c1c2_NHPs.RData")
+ptc1 <- c1c2_NHPs$pt_c1 
+ptc1_filter <- ptc1 %>% 
+    filter(pair %in% corr_276_list$pair) #76 positive and 200 negative, but not significant
+
+mmc1 <- c1c2_NHPs$mm_c1 
+mmc1_filter <- mmc1 %>%
+    filter(pair %in% corr_276_list$pair) #144 positive and 132 negative, but not significant
+
 ```
