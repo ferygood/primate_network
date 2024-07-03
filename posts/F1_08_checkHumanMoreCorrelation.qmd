@@ -201,6 +201,8 @@ mmc2_id <- df_meta %>% filter(cluster=="cluster2" & Organism=="Macaca mulatta")
 Leave one out start:
 
 ```{r}
+# we do not need leave one out comparing human to NHPs
+# this can be deleted
 human_cor <- function(dfgene, dfte, idlist){
     
     corr_list <- list()

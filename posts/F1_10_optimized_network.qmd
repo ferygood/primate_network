@@ -1,0 +1,92 @@
+# Optimize Network (Simplify)
+
+In this script, we try to simplify the network in our manuscript.
+
+The first one will be the 276 network comparing human to bonobo
+
+## 276 network
+
+```{r}
+data("hg19rmsk_info")
+pbd_obj <- readRDS("../data/pbd_obj.rds")
+hmc1 <- pbd_obj$hmc1_corr
+ppc1 <- pbd_obj$ppc1_corr
+ppc1_neg <- ppc1 %>% filter(coef < 0)
+
+intersect276 <- hmc1 %>% 
+    filter(coef>0) %>%
+    filter(pair %in% ppc1_neg$pair) # 276
+
+hmc1_276 <- hmc1 %>% filter(pair %in% intersect276$pair) # all positive
+ppc1_276 <- ppc1 %>% filter(pair %in% intersect276$pair) # all negative
+```
+
+We first based on ZNF112 and ZNF528 to understand the network
+
+create a variable `te_family_count` for drawing the network
+
+```{r}
+y_kznf <- kznf_infer %>% filter(age=="young")
+te_family_count <- hmc1_276 %>%
+    mutate(kznf_age=ifelse(geneName %in% y_kznf$age, "y", "o")) %>%
+    mutate(te_age=ifelse(teName %in% te_infer$NM, "y", "o")) %>%
+    mutate(link_age=ifelse(kznf_age=="o" & te_age=="o", "o", "y")) %>%
+    left_join(hg19rmsk_info[,c(1,2)], join_by(teName==gene_id)) %>%
+    select(c(geneName, teName, family_id, link_age))
+    
+```
+
+Break the network down
+
+\(1\) TEs that only connect to ZNF528
+
+\(2\) TEs that only connect the ZNF112
+
+\(3\) TEs that connect to both ZNF528 and ZNF112
+
+\(4\) the rest
+
+```{r}
+te_both <- te_family_count %>%
+    filter(geneName %in% c("ZNF528", "ZNF112")) %>%
+    filter(duplicated(teName)) #81
+
+te_528 <- te_family_count %>%
+    filter(geneName=="ZNF528") %>%
+    filter(!teName %in% te_both$teName) #54
+
+te_112 <- te_family_count %>%
+    filter(geneName=="ZNF112") %>%
+    filter(!teName %in% te_both$teName) #34
+```
+
+```{r}
+te_both_count <- te_family_count %>%
+    filter(geneName %in% c("ZNF528", "ZNF112")) %>%
+    filter(teName %in% te_both$teName) %>%
+    count(geneName, family_id)
+
+```
+
+Use cytoscape to draw our network
+
+```{r}
+# create a 276 network
+library(netZooR)
+library(RCy3)
+
+te_family_count_modified <- te_family_count %>%
+    mutate(family_id_modified = paste0(family_id, ":", geneName))
+
+c1.276.kznf <- te_family_count_modified %>% select(geneName) %>% unique() #15
+colnames(c1.276.kznf) <- c("id")
+c1.276.te <- te_family_count_modified %>% 
+    select(family_id_modified) %>% unique() #15
+colnames(c1.276.te) <- c("id")
+    
+c1.276.node <- rbind(c1.276.kznf, c1.276.te)
+c1.276.link <- te_family_count_modified[,c(1,5,3,4)]
+colnames(c1.276.link) <- c("source", "target", "link_age", "n")
+
+createNetworkFromDataFrames(c1.276.node, c1.276.link)
+```
