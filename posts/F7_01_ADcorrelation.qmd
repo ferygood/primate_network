@@ -165,7 +165,7 @@ df_znf211_l1ma6 <- data.frame(
 )
 
 g1 <- ggplot(df_znf211_l1ma6, 
-             aes(x = ZNF211, y = L1MA6, fill = group, color = group)) +
+             aes(x = log(ZNF211), y = log(L1MA6), fill = group, color = group)) +
   geom_point(size = 2, shape = 21) +
   facet_wrap(~ group) +
   geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
@@ -189,7 +189,7 @@ df_znf182_aluyc <- data.frame(
 )
 
 g2 <- ggplot(df_znf182_aluyc, 
-             aes(x = ZNF182, y = AluYc, fill = group, color = group)) +
+             aes(x = log(ZNF182), y = log(AluYc), fill = group, color = group)) +
   geom_point(size = 2, shape = 21) +
   facet_wrap(~ group) +
   geom_smooth(method = "lm", se = FALSE, aes(fill = group, color = group)) +
@@ -204,7 +204,7 @@ g2 <- ggplot(df_znf182_aluyc,
 # Control: R=0.7614395, adj-p=0.00350172
 
 library(ggpubr)
-g_merge <- ggarrange(g2, g1, nrow=2)
+g_merge <- ggarrange(g2, g1, nrow=2, common.legend = TRUE, legend="bottom")
 ggsave(g_merge, file="../figures/Mayo_scatter_plot.jpg", dpi=200, width=6, height=6)
 ```
 
