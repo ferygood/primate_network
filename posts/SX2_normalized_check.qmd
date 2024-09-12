@@ -1,0 +1,186 @@
+# Check before and after normalization using human and chimpanzee data
+
+Load package
+
+```{r}
+library(TEKRABber)
+library(tidyverse)
+library(twice)
+library(ggplot2)
+library(ggpubr)
+
+data("hmKZNFs337")
+data("hg19rmsk_info")
+```
+
+Load raw counts table
+
+```{r}
+df_meta <- metadata %>%
+    left_join(brain_meta, join_by(brain_region==region))
+
+
+hmc1_id <- df_meta %>%
+    filter(Organism=="Homo sapiens" & cluster=="cluster1")
+
+ptc1_id <- df_meta %>%
+    filter(Organism=="Pan troglodytes" & cluster=="cluster1")
+
+
+# raw count table
+hmGene_c1 <- hmGene %>% select(c("geneID", hmc1_id$Run))
+    
+    #rowwise() %>%
+    #mutate(mean = mean(c_across(hmc1_id$Run))) %>%
+    #select(c(1, 134))
+
+hmTE_c1 <- hmTE %>% select(c("name", hmc1_id$Run))
+    
+ptGene_c1 <- ptGene %>% select(c("geneID", ptc1_id$Run))
+
+ptTE_c1 <- ptTE %>% select(c("name", ptc1_id$Run))
+```
+
+Run TEKRABber
+
+```{r}
+hm_pt_rmsk <- prepareRMSK("hg38", "panTro6")
+
+hm_pt_orthologTable <- orthologScale(
+    speciesRef = "hsapiens",
+    speciesCompare = "ptroglodytes",
+    geneCountRef = hmGene_c1,
+    geneCountCompare = ptGene_c1,
+    teCountRef = hmTE_c1,
+    teCountCompare = ptTE_c1,
+    rmsk = hm_pt_rmsk,
+    version=105
+)
+
+# save object
+hm_pt_norm_check <- list(
+    "hm_pt_rmsk" = hm_pt_rmsk,
+    "hm_pt_orthologTable" = hm_pt_orthologTable
+)
+
+saveRDS(hm_pt_norm_check, "../data/hm_pt_norm_check.rds")
+
+orthology <- hm_pt_orthologTable$orthologTable
+```
+
+First, we create a dataframe with the raw counts
+
+```{r}
+# for kznfs
+hm_raw_kznfs <- hmGene_c1 %>%
+    filter(geneID %in% hmKZNFs337$ensembl_gene_id) %>%
+    rowwise()
+
+pt_raw_kznfs <- ptGene_c1 %>%
+    left_join(orthology[,c(3,7)], join_by(geneID==compareEnsemblID)) %>%
+    filter(refEnsemblID %in% hmKZNFs337$ensembl_gene_id)
+    
+
+
+
+df_forPlot <- hm_raw_kznfs %>%
+    inner_join(pt_raw_kznfs, join_by(geneID == refEnsemblID))
+
+df_forKZNF <- df_forPlot[,c(1,3,2,4)]
+colnames(df_forKZNF) <- c("hmID", "ptID", "rawHm", "rawChimp")
+
+# for TEs
+hm_raw_TEs <- hmTE_c1
+pt_raw_TEs <- ptTE_c1
+
+df_forTE <- hm_raw_TEs %>%
+    inner_join(pt_raw_TEs, join_by(name==name))
+
+colnames(df_forTE) <- c("TE", "rawHm", "rawChimp") 
+
+```
+
+Then we add normalized data into column
+```{r}
+# for KRAB-ZNFs
+pt_kznfs_normalized <- hm_pt_orthologTable$geneCompare %>%
+    rowwise() %>%
+    mutate(mean = mean(c_across(ptc1_id$Run))) %>%
+    select()
+
+
+
+df_forKZNF <- df_forKZNF %>%
+    left_join(pt_kznfs_normalized, join_by(ptID==compareEnsemblID))
+
+colnames(df_forKZNF)[5] <- "rawChimp" 
+
+df_forKZNF <- df_forKZNF %>%
+    left_join(hmKZNFs337, join_by(hmID==ensembl_gene_id)) %>%
+    select(c(6,1,2,3,4,5))
+
+colnames(df_forKZNF)[c(1,6)] <- c("kznf_name", "scaleChimp")
+
+# for TEs
+df_forTE <- df_forTE %>%
+    left_join(hm_pt_orthologTable$teCompare, join_by(TE==teName))
+
+colnames(df_forTE)[4] <- "scaleChimp"
+
+```
+
+```{r}
+# visualize
+# kznfs
+df_forKZNF_long <- df_forKZNF %>%
+    pivot_longer(cols = c(rawHm, rawChimp, scaleChimp),
+                 names_to = "group",
+                 values_to = "expression")
+
+df_forKZNF_long$group <- factor(df_forKZNF_long$group, levels=c("rawHm", "rawChimp", "scaleChimp"))
+
+kznf_compare <- list(c("rawHm", "rawChimp"), c("rawHm", "scaleChimp"), c("rawChimp", "scaleChimp"))
+
+g_raw_kznfs <- ggplot(df_forKZNF_long, aes(x = group, y = log(expression), fill=group)) +
+    geom_violin(trim=FALSE) +
+    geom_boxplot(fill = "white", color = "black", width=0.3) +
+    stat_compare_means(comparisons = kznf_compare) +
+    labs(title = "Raw count KRAB-ZNFs", x = "", y = "raw count value") +
+    theme_bw()
+
+# TEs
+df_forTE_long <- df_forTE %>%
+    pivot_longer(cols = c(rawHm, rawChimp, scaleChimp),
+                 names_to = "group",
+                 values_to = "expression")
+
+df_forTE_long$group <- factor(df_forTE_long$group, levels=c("rawHm", "rawChimp", "scaleChimp"))
+
+g_raw_TEs <- ggplot(df_forTE_long, aes(x = group, y = log(expression), fill=group)) +
+    geom_violin(trim=FALSE) +
+    geom_boxplot(fill = "white", color = "black", width=0.3) +
+    stat_compare_means(comparisons = kznf_compare) +
+    labs(title = "Raw count TEs", x = "", y = "raw count value") +
+    theme_bw()
+```
+
+
+```{r}
+inputBundle <- DECorrInputs(hm_pt_orthologTable) # with scale
+
+
+meta_hmpt <- data.frame(species=c(rep("human", ncol(hmGene_c1) -1),
+                                  rep("chimpanzee", ncol(hmTE_c1) -1)))
+
+rownames(meta_hmpt) <- colnames(inputBundle$geneInputDESeq2)
+meta_hmpt$species <- factor(meta_hmpt$species, levels=c("human", "chimpanzee"))
+
+hmchimpDE <- DEgeneTE(
+    geneTable = inputBundle$geneInputDESeq2,
+    teTable = inputBundle$teInputDESeq2,
+    metadata = meta_hmpt,
+    expDesign = TRUE
+)
+
+```
+
