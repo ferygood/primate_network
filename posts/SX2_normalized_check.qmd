@@ -64,8 +64,246 @@ hm_pt_norm_check <- list(
 )
 
 saveRDS(hm_pt_norm_check, "../data/hm_pt_norm_check.rds")
+#read RDS
+#hm_pt_norm_check <- readRDS("../data/hm_pt_norm_check.rds")
+#hm_pt_orthologTable <- hm_pt_norm_check$hm_pt_orthologTable
 
 orthology <- hm_pt_orthologTable$orthologTable
+```
+
+## First part: standard TEKRABber
+
+The first part will be we run the standard TEKRABber pipeline first
+
+```{r}
+inputBundle <- DECorrInputs(hm_pt_orthologTable)
+
+meta_hmpt <- data.frame(species=c(rep("human", ncol(hmGene_c1) -1),
+                                  rep("chimpanzee", ncol(ptTE_c1) -1)))
+
+rownames(meta_hmpt) <- colnames(inputBundle$geneInputDESeq2)
+meta_hmpt$species <- factor(meta_hmpt$species, levels=c("human", "chimpanzee"))
+
+hmchimpDE <- DEgeneTE(
+    geneTable = inputBundle$geneInputDESeq2,
+    teTable = inputBundle$teInputDESeq2,
+    metadata = meta_hmpt,
+    expDesign = TRUE
+)
+
+# select only KRAB-ZNFs
+hmCorrInputKZNFs <- hmchimpDE$geneCorrInputRef %>%
+    filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+
+ptCorrInputKZNFs <- hmchimpDE$geneCorrInputCompare %>%
+    filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+
+timestamp()
+# run correlation
+hmCorr <- corrOrthologTE(
+    geneInput = hmCorrInputKZNFs,
+    teInput = hmchimpDE$teCorrInputRef,
+    numCore = 2
+)
+
+ptCorr <- corrOrthologTE(
+    geneInput = ptCorrInputKZNFs,
+    teInput = hmchimpDE$teCorrInputCompare,
+    numCore = 2
+)
+timestamp()
+# only 10 minutes
+```
+
+## Second part: no scaling TEKRABber analysis
+
+The second version is not scaling the data but also run the TEKRABber pipeline
+
+```{r}
+# create input for DE analysis, merge dataframe together
+# for ortholog
+orthology_list <- orthology %>% select(3,7)
+
+ptGene_c1_merge <- ptGene_c1 %>%
+    inner_join(orthology_list, join_by(geneID==compareEnsemblID))
+
+ptGene_c1_merge <- ptGene_c1_merge[c(32, 2:31)]
+
+hmGene_c1_merge <- hmGene_c1 %>%
+    inner_join(ptGene_c1_merge, join_by(geneID==refEnsemblID)) %>%
+    filter(!duplicated(geneID))
+rownames(hmGene_c1_merge) <- hmGene_c1_merge$geneID
+
+# for TEs
+hmTE_c1_merge <- hmTE_c1 %>%
+    inner_join(ptTE_c1, join_by(name==name))
+rownames(hmTE_c1_merge) <- hmTE_c1_merge$name
+
+hmchimpDE_noscale <- DEgeneTE(
+    geneTable = hmGene_c1_merge[c(2:71)],
+    teTable = hmTE_c1_merge[c(2:71)],
+    metadata = meta_hmpt,
+    expDesign = TRUE
+)
+
+# select only kznfs
+hmkznf_noscale <- hmchimpDE_noscale$geneCorrInputRef %>% filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+ptkznf_noscale <- hmchimpDE_noscale$geneCorrInputCompare %>% filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+
+# run correlation
+hmCorr_noscale <- corrOrthologTE(
+    geneInput = hmkznf_noscale,
+    teInput = hmchimpDE_noscale$teCorrInputRef,
+    numCore = 2
+)
+
+ptCorr_noscale <- corrOrthologTE(
+    geneInput = ptkznf_noscale,
+    teInput = hmchimpDE_noscale$teCorrInputCompare,
+    numCore = 2
+)
+```
+
+## Third part: integrate results from previous two parts
+
+We now have scale, and non-scale data, we want to compare them.
+
+```{r}
+# for correlation
+hmCorr_filter <- hmCorr %>% filter(padj<0.01) #47309
+ptCorr_filter <- ptCorr %>% filter(padj<0.01) #239
+ptCorr_noScale_filter <- ptCorr_noscale %>% filter(padj<0.01) #255
+
+# check difference
+ptCorr_filter <- ptCorr_filter %>% mutate(pair=paste0(geneName,"-", teName))
+ptCorr_noScale_filter <- ptCorr_noScale_filter %>% 
+    mutate(pair=paste0(geneName,"-", teName))
+
+intersect(ptCorr_filter$pair, ptCorr_noScale_filter$pair) #230
+
+# for expression
+hmDE <- hmchimpDE$gene_res %>% data.frame() %>%
+    filter(abs(log2FoldChange)>1.5 & padj<0.05) #3715
+hmDE_noscale <- hmchimpDE$gene_res %>% data.frame() %>%
+    filter(abs(log2FoldChange)>1.5 & padj<0.05) #3715, no difference
+
+hmDE_TE <- hmchimpDE$te_res %>% data.frame() %>%
+    filter(abs(log2FoldChange)>1.5 & padj<0.05) #54
+
+hmDE_noScale_TE <- hmchimpDE_noscale$te_res %>% data.frame() %>%
+    filter(abs(log2FoldChange)>1.5 & padj<0.05) #53
+```
+
+Then, we focus on the difference of TEs
+
+```{r}
+# merge two TE dataframe
+deTE <- hmDE_TE %>%
+    mutate(group="scale", teName=rownames(.)) %>%
+    select(c(2,6,7))
+rownames(deTE) <- 1:nrow(deTE)
+
+deTE_noScale <- hmDE_noScale_TE %>%
+    mutate(group="no_scale", teName=rownames(.)) %>%
+    select(c(2,6,7))
+rownames(deTE_noScale) <- 1:nrow(deTE_noScale)
+
+deTE_merge <- rbind(deTE, deTE_noScale)
+
+g_DE_TE <- ggplot(deTE_merge, aes(x=log2FoldChange, fill=group)) +
+    geom_histogram(binwidth=0.5, position="identity", alpha=0.5, color="black")  +
+    theme_bw() +
+    scale_fill_manual(values=c("#ac4841", "#A8CF87"))
+
+# compare mean
+deTE_log2_merge <- deTE %>%
+    inner_join(deTE_noScale, join_by(teName==teName)) %>%
+    select(c(3,2,5,1,4))
+
+g_scatter <- ggplot(deTE_log2_merge, 
+                    aes(x = log2FoldChange.x, y = log2FoldChange.y)) +
+    geom_point(color = "#ACA8DE", alpha=0.7, shape=19, size=4) +
+    geom_abline(slope = 1, intercept = 0, linetype="dashed", color="red") +
+    labs(title = "Log2FoldChange w/ scale and w/o scale",
+         x = "scale data", y = "no scale data") +
+    theme_bw()
+
+deTE_long <- deTE_log2_merge %>%
+    pivot_longer(cols = starts_with("log2FoldChange"),
+                 names_to = "Group",
+                 values_to = "Log2FoldChange")
+
+deTE_long <- deTE_long %>%
+    mutate(Group = recode(Group,
+                          "log2FoldChange.x" = "scale",
+                          "log2FoldChange.y" = "no_scale"))
+                          
+
+g_boxplot <- ggplot(deTE_long, aes(x=Group, y=Log2FoldChange, fill=Group)) +
+    geom_boxplot(alpha=0.7) +
+    stat_compare_means(paired=TRUE) +
+    xlab("") +
+    theme_bw() +
+    scale_fill_manual(values=c("#ac4841", "#A8CF87"))
+
+g_TE_exp <- ggarrange(g_scatter, g_DE_TE, g_boxplot, ncol=3)
+ggsave(g_TE_exp, file="../figures/check_normalized_chimpTE.jpg", width=14, 
+       height=4, dpi=200)
+```
+
+then, we evaluate the correlations result
+
+```{r}
+# merge two TE dataframe
+ptCorr_filter_process <- ptCorr_filter %>% mutate(group="scale")
+
+ptCorr_noScale_filter_process <- ptCorr_noScale_filter %>%
+    mutate(group="no_scale")
+
+ptCorr_forHist <- rbind(ptCorr_filter_process[,c(3,7)],
+                        ptCorr_noScale_filter_process[,c(3,7)])
+
+g_corrHist <- ggplot(ptCorr_forHist, aes(x=coef, fill=group)) +
+    geom_histogram(position="identity", alpha=0.5, color="black")  +
+    theme_bw() +
+    scale_fill_manual(values=c("#ac4841", "#A8CF87"))
+
+# compare mean
+ptCorr_merge <-  ptCorr_filter_process[,c(3,6,7)] %>%
+    inner_join(ptCorr_noScale_filter_process[,c(3,6,7)], 
+               join_by(pair==pair)) %>%
+    select(c(2,3,5,1,4))
+    
+ptCorr_scatter <- ggplot(ptCorr_merge, 
+                    aes(x = coef.x, y = coef.y)) +
+    geom_point(color = "#ACA8DE", alpha=0.7, shape=19, size=4) +
+    geom_abline(slope = 1, intercept = 0, linetype="dashed", color="red") +
+    labs(title = "Coefficients w/ scale and w/o scale",
+         x = "scale data", y = "no scale data") +
+    theme_bw()
+
+ptCorr_merge_long <- ptCorr_merge %>%
+    pivot_longer(cols = starts_with("coef"),
+                 names_to = "Group",
+                 values_to = "Coefficients")
+
+ptCorr_merge_long <- ptCorr_merge_long %>%
+    mutate(Group = recode(Group,
+                          "coef.x" = "scale",
+                          "coef.y" = "no_scale"))
+                          
+
+ptCorr_boxplot <- ggplot(ptCorr_merge_long, 
+                    aes(x=Group, y=Coefficients, fill=Group)) +
+    geom_boxplot(alpha=0.7) +
+    stat_compare_means(paired=TRUE) +
+    xlab("") +
+    theme_bw() +
+    scale_fill_manual(values=c("#ac4841", "#A8CF87"))
+
+g_TE_corr <- ggarrange(ptCorr_scatter, g_corrHist, ptCorr_boxplot, ncol=3)
+ggsave(g_TE_corr, file="../figures/check_normalized_correlation.jpg", width=14, 
+       height=4, dpi=200)
 ```
 
 First, we create a dataframe with the raw counts
@@ -101,6 +339,7 @@ colnames(df_forTE) <- c("TE", "rawHm", "rawChimp")
 ```
 
 Then we add normalized data into column
+
 ```{r}
 # for KRAB-ZNFs
 pt_kznfs_normalized <- hm_pt_orthologTable$geneCompare %>%
@@ -164,7 +403,6 @@ g_raw_TEs <- ggplot(df_forTE_long, aes(x = group, y = log(expression), fill=grou
     theme_bw()
 ```
 
-
 ```{r}
 inputBundle <- DECorrInputs(hm_pt_orthologTable) # with scale
 
@@ -183,4 +421,3 @@ hmchimpDE <- DEgeneTE(
 )
 
 ```
-
