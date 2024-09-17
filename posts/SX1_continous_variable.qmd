@@ -166,4 +166,12 @@ write.csv(TE_phylo, file="../tables/TE_phylo_age.csv", row.names=F)
 
 Then we need to calculate the exact number
 
+```{r}
+TE_phylo_preprocess <- TE_phylo[,c(1,5,6)] %>%
+    full_join(te_infer[,c(2,3)], join_by(repName==NM)) %>%
+    mutate(clade = ifelse(is.na(clade), OS, clade)) %>%
+    group_by(clade, age) %>%
+    summarise(count=n())
+    
+```
 
