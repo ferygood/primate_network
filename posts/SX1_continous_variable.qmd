@@ -54,10 +54,11 @@ hm_kznf <- HmPtC1$DEobject$gene_res %>%
 
 hm_kznf$taxo <- factor(hm_kznf$taxo, levels=branch_table$taxo[1:12])
 
-g_hm_kznf <- ggplot(hm_kznf, aes(x=taxo, y=log(baseMean))) +
-    geom_boxplot(fill = "#C087F8", color="black") +
+g_hm_kznf <- ggplot(hm_kznf, aes(x=taxo, y=baseMean)) +
+    geom_boxplot(fill = "#C087F8", color="black", outlier.shape = NA) +
     xlab("") +
-    ylab("log(exp)") +
+    ylab("exp") +
+    ylim(0, 800) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 70, vjust= 0.6, hjust=0.5)) 
     
@@ -131,10 +132,18 @@ hm_TE <- HmPtC1$DEobject$te_res %>%
 
 hm_TE$species <- factor(hm_TE$species, levels=clade)
 
-g_hm_te <- ggplot(hm_TE, aes(x=species, y=log(baseMean))) +
-    geom_boxplot(fill = "#76D7C4", color="black") +
+g_hm_te <- ggplot(hm_TE, aes(x=species, y=baseMean)) +
+    geom_boxplot(fill = "#76D7C4", color="black", outlier.shape = NA) +
     xlab("") +
-    ylab("log(exp)") +
+    ylab("exp") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 60, vjust= 0.6, hjust=0.5))
+
+g_hm_te_2 <- ggplot(hm_TE, aes(x=species, y=baseMean)) +
+    geom_boxplot(fill = "#76D7C4", color="black", outlier.shape = NA) +
+    xlab("") +
+    ylab("exp") +
+    ylim(0, 1000) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 60, vjust= 0.6, hjust=0.5))
 ```
@@ -143,7 +152,7 @@ merge two graphs
 
 ```{r}
 g_hm_kznf_te <- ggarrange(g_hm_kznf, g_hm_te, ncol = 1)
-ggsave("../figures/continuous_age_check_hmc1.jpg", dpi=400, width=6)
+ggsave("../figures/continuous_age_check_hmc1.jpg", dpi=400, width=6, height = 10)
 ```
 
 We would like to put the number of TEs and KRAB-ZNFs in a phylogeny tree
@@ -174,4 +183,3 @@ TE_phylo_preprocess <- TE_phylo[,c(1,5,6)] %>%
     summarise(count=n())
     
 ```
-
