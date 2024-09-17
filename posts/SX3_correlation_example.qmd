@@ -1,0 +1,70 @@
+# Some correlation example
+
+Provide some correlation example
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+```
+
+```{r}
+# load human data
+hmc1_sig_nw <- read.csv("../tables/hmc1_sig_forNetwork.csv") #869
+hmc1_sig_nw_select <- hmc1_sig_nw %>%
+    filter(coef<0 & age=="young")
+
+# load expression data
+hm_tpm <- readRDS("../data/hmExp_tpm.rds")
+hm_gene <- hm_tpm$c1_tpm$gene
+hm_te <- hm_tpm$c1_tpm$te
+
+# create dataframe
+df_1 <- data.frame(
+    ZNF441 = t(hm_gene["ZNF441",]),
+    AluYg6 = t(hm_te["AluYg6",])
+)
+
+df_2 <- data.frame(
+    ZNF334 = t(hm_gene["ZNF334",]),
+    AluYa5 = t(hm_te["AluYa5",])
+)
+
+df_3 <- data.frame(
+    ZNF189 = t(hm_gene["ZNF189",]),
+    LTR41 = t(hm_te["LTR41",])
+)
+```
+
+create a function to visualize data
+
+```{r}
+g_corr <- function(df, x_name, y_name){
+    
+    coef <- cor(df[,1], df[,2])
+    
+    g <- ggplot(df, aes(x = log(df[,1]), y = log(df[,2]))) +
+        geom_point(shape=21, size=3) +
+        geom_smooth(method = "lm", se=FALSE, color="lightblue") +
+        annotate("text", x = Inf, y = Inf, 
+                 label = paste("coefficient = ", round(coef, 2)),
+                 hjust = 1.1, vjust = 2, size=3, color="red") +
+        xlab(x_name) +
+        ylab(y_name) +
+        theme_bw()
+    
+    g
+    
+}
+
+```
+
+```{r}
+g1 <- g_corr(df_1, "ZNF441", "AluYg6")
+g2 <- g_corr(df_2, "ZNF334", "AluYa5")
+g3 <- g_corr(df_3, "ZNF189", "LTR41")
+
+g_merge <- ggarrange(g1, g2, g3, ncol=3)
+ggsave(g_merge, file="../figures/correlation_example.jpg", 
+       dpi=300, width=10, height = 3)
+```
