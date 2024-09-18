@@ -1,0 +1,102 @@
+```{r}
+library(TEKRABber)
+library(tidyverse)
+library(twice)
+library(ggplot2)
+library(ggpubr)
+```
+
+Create meta data
+```{r}
+df_meta <- metadata %>%
+    left_join(brain_meta, join_by(brain_region==region))
+    
+hmc1_id <- df_meta %>%
+    filter(Organism=="Homo sapiens" & cluster=="cluster1")
+
+ptc1_id <- df_meta %>%
+    filter(Organism=="Pan troglodytes" & cluster=="cluster1")
+
+ppc1_id <- df_meta %>%
+    filter(Organism=="Pan paniscus" & cluster=="cluster1")
+
+mmc1_id <- df_meta %>%
+    filter(Organism=="Macaca mulatta" & cluster=="cluster1")
+
+```
+
+Get raw count table
+```{r}
+hmGene_c1 <- hmGene %>% select(c("geneID", hmc1_id$Run))
+hmTE_c1 <- hmTE %>% select(c("name", hmc1_id$Run))
+    
+ptGene_c1 <- ptGene %>% select(c("geneID", ptc1_id$Run))
+ptTE_c1 <- ptTE %>% select(c("name", ptc1_id$Run))
+
+ppGene_c1 <- ppGene %>% select(c("geneID", ppc1_id$Run))
+ppTE_c1 <- ppTE %>% select(c("name", ppc1_id$Run))
+
+mmGene_c1 <- mmGene %>% select(c("geneID", mmc1_id$Run))
+mmTE_c1 <- mmTE %>% select(c("name", mmc1_id$Run))
+```
+
+Run the first step of TEKRABber, get the rmsk file
+
+```{r}
+hm_pt_rmsk <- prepareRMSK("hg38", "panTro6")
+hm_pp_rmsk <- prepareRMSK("hg38", "panPan3")
+hm_mm_rmsk <- prepareRMSK("hg38", "rheMac10")
+```
+
+Second, run `orthologScale()`
+
+```{r}
+# human vs chimpanzee
+hm_pt_orthologTable <- orthologScale(
+    speciesRef = "hsapiens",
+    speciesCompare = "ptroglodytes",
+    geneCountRef = hmGene_c1,
+    geneCountCompare = ptGene_c1,
+    teCountRef = hmTE_c1,
+    teCountCompare = ptTE_c1,
+    rmsk = hm_pt_rmsk,
+    version=105
+)
+
+# human vs bonobo
+hm_pp_orthologTable <- orthologScale(
+    speciesRef = "hsapiens",
+    speciesCompare = "ppaniscus",
+    geneCountRef = hmGene_c1,
+    geneCountCompare = ppGene_c1,
+    teCountRef = hmTE_c1,
+    teCountCompare = ppTE_c1,
+    rmsk = hm_pp_rmsk,
+    version=105
+)
+
+# human vs macaque
+hm_mm_orthologTable <- orthologScale(
+    speciesRef = "hsapiens",
+    speciesCompare = "mmulatta",
+    geneCountRef = hmGene_c1,
+    geneCountCompare = mmGene_c1,
+    teCountRef = hmTE_c1,
+    teCountCompare = mmTE_c1,
+    rmsk = hm_mm_rmsk,
+    version=105
+)
+```
+
+Save the orthologTable result into a object
+```{r}
+scale_obj <- list(
+    "hmPt"=hm_pt_orthologTable,
+    "hmPp"=hm_pp_orthologTable,
+    "hmMm"=hm_mm_orthologTable
+)
+
+saveRDS(scale_obj, "../data/scale_obj_fourSpecies.rds")
+
+```
+
