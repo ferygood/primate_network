@@ -97,6 +97,257 @@ scale_obj <- list(
 )
 
 saveRDS(scale_obj, "../data/scale_obj_fourSpecies.rds")
+#scale_obj <- readRDS("../data/scale_obj_fourSpecies.rds")
+```
+
+Use human and chimpanzee as example and write a function
+```{r}
+
+calculate_DE_corr <- function(s_obj, refGene, compareGene, refTE, compareTE, refSpecies, compareSpecies){
+
+    # First part, standard TEKRABber
+    inputBundle <- DECorrInputs(s_obj)
+    
+    meta <- data.frame(species=c(rep(refSpecies, ncol(refGene) -1),
+                                      rep(compareSpecies, ncol(compareGene) -1)))
+    
+    rownames(meta) <- colnames(inputBundle$geneInputDESeq2)
+    meta$species <- factor(meta$species, levels=c(refSpecies, compareSpecies))
+    
+    DEobj <- DEgeneTE(
+        geneTable = inputBundle$geneInputDESeq2,
+        teTable = inputBundle$teInputDESeq2,
+        metadata = meta,
+        expDesign = TRUE
+    )
+    
+    # select only KRAB-ZNFs
+    refCorrInputKZNFs <- DEobj$geneCorrInputRef %>%
+        filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+    
+    compareCorrInputKZNFs <- DEobj$geneCorrInputCompare %>%
+        filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+    
+    timestamp()
+    # run correlation
+    refCorr <- corrOrthologTE(
+        geneInput = refCorrInputKZNFs,
+        teInput = DEobj$teCorrInputRef,
+        numCore = 3
+    )
+    
+    compareCorr <- corrOrthologTE(
+        geneInput = compareCorrInputKZNFs,
+        teInput = DEobj$teCorrInputCompare,
+        numCore = 3
+    )
+    timestamp()
+    # only 10 minutes
+    
+    # Second part
+    print("merging data")
+    orthology <- s_obj$orthologTable
+    orthology_list <- orthology %>% select(3,7)
+    
+    compareGene_merge <- compareGene %>%
+        inner_join(orthology_list, join_by(geneID==compareEnsemblID))
+    
+    compareGene_merge <- compareGene_merge[c(ncol(compareGene_merge), 2:ncol(compareGene_merge)-1)]
+    
+    refGene_merge <- refGene %>%
+        inner_join(compareGene_merge, join_by(geneID==refEnsemblID)) %>%
+        filter(!duplicated(geneID))
+    rownames(refGene_merge) <- refGene_merge$geneID
+    refGene_merge$geneID.y <- NULL
+    
+    # for TEs
+    refTE_unique <- refTE[!duplicated(refTE$name), ]
+    compareTE_unique <- compareTE[!duplicated(compareTE$name), ]
+    refTE_merge <- refTE_unique %>%
+        inner_join(compareTE_unique, join_by(name==name))
+    rownames(refTE_merge) <- refTE_merge$name
+    
+    print("Run no scale DE analysis")
+    print(ncol(refGene_merge))
+    print(ncol(refTE_merge))
+    DE_noscale <- DEgeneTE(
+        geneTable = refGene_merge[c(2:(nrow(meta)+1))],
+        teTable = refTE_merge[c(2:(nrow(meta)+1))],
+        metadata = meta,
+        expDesign = TRUE
+    )
+    
+    # select only kznfs
+    refkznf_noscale <- DE_noscale$geneCorrInputRef %>% filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+    comparekznf_noscale <- DE_noscale$geneCorrInputCompare %>% filter(rownames(.) %in% kznf_infer$ensembl_gene_id)
+    
+    print("Run correlation")
+    # run correlation
+    refCorr_noscale <- corrOrthologTE(
+        geneInput = refkznf_noscale,
+        teInput = DE_noscale$teCorrInputRef,
+        numCore = 3
+    )
+    
+    compareCorr_noscale <- corrOrthologTE(
+        geneInput = comparekznf_noscale,
+        teInput = DE_noscale$teCorrInputCompare,
+        numCore = 3
+    )
+    
+    result <- list(
+        "DEobj" = DEobj,
+        "DE_noscale" = DE_noscale,
+        "refCorr" = refCorr,
+        "compareCorr" = compareCorr,
+        "refCorr_noscale" = refCorr_noscale,
+        "compareCorr_noscale" = compareCorr_noscale
+    )
+
+}    
 
 ```
+
+Run the above function `calculate_DE_corr()`
+
+```{r}
+hmpt_result <- calculate_DE_corr(scale_obj$hmPt, hmGene_c1, ptGene_c1, hmTE_c1, ptTE_c1, "hm", "pt")
+hmpp_result <- calculate_DE_corr(scale_obj$hmPp, hmGene_c1, ppGene_c1, hmTE_c1, ppTE_c1, "hm", "pp")
+hmmm_result <- calculate_DE_corr(scale_obj$hmMm, hmGene_c1, mmGene_c1, hmTE_c1, mmTE_c1, "hm", "mm")
+
+```
+
+Next, we write a function to merge scale and non-scale data `preprocess_cale_result`
+
+```{r}
+# merge TE dataframe
+# compare correlation
+preprocess_scale_result <- function(result, label_name) {
+    compareCorr_filter <- result$compareCorr %>% 
+        filter(padj<0.01) %>%
+        mutate(pair = paste0(geneName, "-", teName)) %>%
+        mutate(label = paste0(label_name))
+    
+    compareCorr_noScale_filter <- result$compareCorr_noscale %>% 
+        filter(padj<0.01) %>%
+        mutate(pair = paste0(geneName, "-", teName)) %>%
+        mutate(label = paste0(label_name, "_noScale"))
+    
+    # compare TE expression
+    DE_TE <- result$DEobj$te_res %>%
+        data.frame() %>%
+        #filter(padj<0.05)
+        filter(abs(log2FoldChange) >= 1.5 & padj<0.05)
+    
+    DE_TE_noScale <- result$DE_noscale$te_res %>%
+        data.frame() %>%
+        #filter(padj<0.05)
+        filter(abs(log2FoldChange) >= 1.5 & padj<0.05)
+    
+    deTE <- DE_TE %>%
+        mutate(group="scale", teName=rownames(.)) %>%
+        select(c(2,6,7)) %>%
+        mutate(label = paste0(label_name))
+    rownames(deTE) <- 1:nrow(deTE)
+    
+    deTE_noScale <- DE_TE_noScale %>%
+        mutate(group="scale", teName=rownames(.)) %>%
+        select(c(2,6,7)) %>%
+        mutate(label = paste0(label_name, "_noScale"))
+    rownames(deTE_noScale) <- 1:nrow(deTE_noScale)
+    
+    deTE_merge <- rbind(deTE, deTE_noScale)
+    
+    label_result <- list(
+        "corr_scale" = compareCorr_filter,
+        "corr_noScale" = compareCorr_noScale_filter,
+        "deTE_merge" = deTE_merge
+    )
+    
+    label_result
+}
+
+```
+
+
+```{r}
+chimp <- preprocess_scale_result(hmpt_result, "chimp")
+bonobo <- preprocess_scale_result(hmpp_result, "bonobo")
+macaque <- preprocess_scale_result(hmmm_result, "macaque")
+```
+
+Then we will need to select the overlap of genes, KRAB-ZNFs, and TEs
+```{r}
+# for chimp
+chimp_scaleDE <- chimp$deTE_merge %>% filter(label=="chimp")
+chimp_noScaleDE <- chimp$deTE_merge %>% filter(label=="chimp_noScale")
+
+bonobo_scaleDE <- bonobo$deTE_merge %>% filter(label=="bonobo")
+bonobo_noScaleDE <- bonobo$deTE_merge %>% filter(label=="bonobo_noScale")
+
+
+mac_scaleDE <- macaque$deTE_merge %>% filter(label=="macaque")
+mac_noScaleDE <- macaque$deTE_merge %>% filter(label=="macaque_noScale")
+
+chimp_overlap <- intersect(chimp_scaleDE$teName, chimp_noScaleDE$teName)
+bonobo_overlap <- intersect(bonobo_scaleDE$teName, bonobo_noScaleDE$teName)
+macaque_overlap <- intersect(mac_scaleDE$teName, mac_noScaleDE$teName)
+
+overlap_all <- Reduce(intersect, list(chimp_overlap, bonobo_overlap, macaque_overlap)) #328
+
+
+```
+
+```{r}
+chimp_log <- chimp_scaleDE %>% filter(!(teName %in% chimp_overlap)) #59
+chimp_log_ns <- chimp_noScaleDE %>% filter(!(teName %in% chimp_overlap)) #49
+
+bonobo_log <- bonobo_scaleDE %>% filter(!(teName %in% bonobo_overlap)) #101
+bonobo_log_ns <- bonobo_noScaleDE %>% filter(!(teName %in% bonobo_overlap)) #63
+
+mac_log <- mac_scaleDE %>% filter(!(teName %in% macaque_overlap)) #81
+mac_log_ns <- mac_noScaleDE %>% filter(!(teName %in% macaque_overlap)) #70
+
+df_scale <- rbind(chimp_log, bonobo_log, mac_log)
+df_noScale <- rbind(chimp_log_ns, bonobo_log_ns, mac_log_ns)
+
+```
+
+```{r}
+chimp_log <- chimp_scaleDE %>% filter(!(teName %in% overlap_all)) #59
+chimp_log_ns <- chimp_noScaleDE %>% filter(!(teName %in% overlap_all)) #49
+
+bonobo_log <- bonobo_scaleDE %>% filter(!(teName %in% overlap_all)) #101
+bonobo_log_ns <- bonobo_noScaleDE %>% filter(!(teName %in% overlap_all)) #63
+
+mac_log <- mac_scaleDE %>% filter(!(teName %in% overlap_all)) #81
+mac_log_ns <- mac_noScaleDE %>% filter(!(teName %in% overlap_all)) #70
+
+df_scale <- rbind(chimp_log, bonobo_log, mac_log)
+df_noScale <- rbind(chimp_log_ns, bonobo_log_ns, mac_log_ns)
+```
+
+
+```{r}
+df_percentage <- data.frame(
+    label = c("w/ scale", "w/o scale", "w/ scale", "w/o scale", "w/ scale", "w/o scale"),
+    species = c("chimp", "chimp", "bonobo", "bonobo", "macaque", "macaque"),
+    percentage = c(round(5/58, 2), round(4/58, 2), round(8/52, 2), round(4/52, 2), round(12/59,2), round(7/59, 2))
+)
+
+df_percentage$label <- factor(df_percentage$label, level=c("w/ scale", "w/o scale")) 
+df_percentage$species <- factor(df_percentage$species, level=c("chimp", "bonobo", "macaque"))
+
+g_scale <- ggplot(df_percentage, aes(x=species, y=percentage*100, fill=label)) +
+    geom_bar(stat = "identity", position="stack") +
+    scale_fill_manual(values = c("#ffb7c5", "#66a9ff")) +
+    ylab("DE TEs (%)") +
+    xlab("") +
+    ggtitle("Effects on w/ and w/o scaling") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust=1))
+
+ggsave(g_scale, file="../figures/scaling_check_NHPs.jpg", dpi=400, width=4, height=4)
+```
+
 
